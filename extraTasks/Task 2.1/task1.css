@@ -1,0 +1,74 @@
+.container {
+  text-align: center;
+  padding-top: 10em;
+  z-index: -5;
+  /* background-color: rgb(129, 129, 129); */
+  min-height: 100vh;
+}
+.btn {
+  background-color: rgb(107, 107, 255);
+  border-style: none;
+  border-radius: 5px;
+  color: white;
+  z-index: 0;
+}
+.btn:hover {
+  background-color: rgb(0, 0, 97);
+  cursor: pointer;
+}
+.big {
+  font-size: 25px;
+  width: 12em;
+  padding: 0.5em 2em;
+}
+.dlg {
+  width: 45em;
+  min-height: 20em;
+  margin: auto;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-align: left;
+  position: relative;
+  background-color: white;
+  z-index: 100;
+}
+.dlg h1 {
+  margin-left: 1.3em;
+  padding-top: 1em;
+  padding-bottom: 0.7em;
+  width: 18em;
+  border-bottom: grey 1px solid;
+}
+.dlg p {
+  margin-left: 2.5em;
+}
+.small {
+  font-size: 15px;
+  width: 6em;
+  padding: 0.5em 2em;
+  position: absolute;
+  bottom: 2em;
+  right: 2em;
+}
+.cross {
+  border-style: none;
+  color: grey;
+  font-size: 15px;
+  position: absolute;
+  top: 0.9em;
+  right: 0.9em;
+}
+.cross:hover {
+  color: black;
+}
+div.shadow {
+  background-color: black;
+  opacity: 0.4;
+  margin-top: 0;
+  width: 100%;
+  min-height: 100vh;
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+}

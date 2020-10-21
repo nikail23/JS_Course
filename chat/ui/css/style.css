@@ -1,17 +1,25 @@
+:root {
+    --first-bg-color: #55E0BB;
+    --second-bg-color:  #4EC1ED;
+}
+
 ::-webkit-scrollbar{
     width: 11px;
 }
+
 ::-webkit-scrollbar-track{
- background: #c4c6c8;
+    background: #c4c6c8;
 }
+
 ::-webkit-scrollbar-thumb{
- background: #4EC1ED;
- border-radius: 10px;
- -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.4);
+    background: #4EC1ED;
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.4);
 }
+
 ::-webkit-scrollbar-thumb:vertical:hover,
 ::-webkit-scrollbar-thumb:horizontal:hover{
- background: #55E0BB;
+    background: #55E0BB;
 }
 
 body {
@@ -21,53 +29,53 @@ body {
     max-height: 768px;
 }
 
-body header {
+header {
     width: 100%;
     height: 7rem;
-    background-color: #55E0BB;
+    background-color: var(--first-bg-color);
 
     display: grid;
     grid-template-columns: minmax(3rem, 6rem) minmax(auto, 100%) minmax(3rem, 6rem);
     grid-template-rows: minmax(7rem, auto);
 }
 
-body header .logoLink {
+.logoLink {
     grid-column: 2/3;
 }
 
-body header .logoLink .logoImage {
+.logoImage {
     height: 100%;
     width: auto;
 }
 
-body header .actions {
+.actions {
     margin: auto 0;
     grid-column: 3/4;
 }
 
-body header .actions .headerLink {
+.headerLink {
     color: #ffffff;
 }
 
-body footer {
+footer {
     width: 100%;
     height: 7rem;
-    background-color: #4EC1ED;
+    background-color: var(--second-bg-color);
     display: grid;
     grid-template-columns: minmax(1rem, 2rem) minmax(10rem, 20rem) auto;
 }
 
-body footer .footerInfoBlock {
+.footerInfoBlock {
     position: relative;
     margin: auto 0;
     grid-column: 2/3;
 }
 
-body footer .footerInfoText {
+.footerInfoText {
     color: #ffffff;
 }
 
-body main {
+main {
     padding: max(2rem, 5%);
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
@@ -75,34 +83,49 @@ body main {
     grid-gap: 1rem;
 }
 
-body main .usersList {
+.usersList {
     grid-row: 1/7;
     grid-column: 1/2;
 }
 
-body main .chat {
+.chat {
     border-radius: 5px;
     grid-row: 1/7;
     grid-column: 2/3;
 }
 
-body main .chat .messages {
+.messages {
     grid-row: 1/7;
     grid-column: 2/3;
     height: 11rem;
-    overflow-y: none;
+    overflow-y: hidden;
+    display: grid;
 }
 
-body main .chat .messages:hover {
+.messages:hover {
     overflow-y: auto;
 }
 
-body main .chat .messages .message{
-    grid-row: 1/7;
-    grid-column: 2/3;
+.commonComeMessage{
+    display: inline-block;
+    margin-right: 50%;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    background-color: var(--second-bg-color);
 }
 
-body main .chat .input{
+.commonSentMessage{
+    display: inline-block;
+    margin-left: 50%;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    background-color: var(--first-bg-color);
+}
+
+.input{
+    margin-top: 1rem;
     border-radius: 5px;
     height: 4rem;   
     grid-row: 1/7;
@@ -111,7 +134,7 @@ body main .chat .input{
     grid-template-columns: 7fr 1fr;
 }
 
-body main .chat .input .messageInput{
+.messageInput{
     border-radius: 5px;
     background-color: #4EC1ED;
     grid-column: 1/2;
@@ -119,9 +142,8 @@ body main .chat .input .messageInput{
     grid-template-columns: 2fr 5fr;
 } 
 
-body main .chat .input .messageInput input{
+.messageInput input{
     border: 0;     
-    color: #ffffff; 
     background: #4EC1ED; 
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -130,26 +152,25 @@ body main .chat .input .messageInput input{
     transition: 0.3s ease all;
 } 
 
-body main .chat .input .messageInput input:focus{
+.messageInput input:focus{
     color: #000000;
     background: rgb(206, 206, 206);
     outline: none;
     font-size: 16px; 
 } 
 
-body main .chat .input .messageInput .inputText{
-    color: #ffffff;
+.inputText{
     text-align: center;
     grid-column: 1/2;
     margin: auto 0;
     word-break: break-all;
 }
 
-body main .chat .input .sendButton {
+.sendButton {
     width: 4rem;
     height: 4rem;
     margin: auto auto;
-    margin-left: 5%;
+    margin-left: 1rem;
     background: transparent;
     outline: none;
 	border-top: 2rem solid transparent;
@@ -160,22 +181,22 @@ body main .chat .input .sendButton {
     transition: 0.3s ease all;
 }
 
-body main .chat .input .sendButton:hover {
+.sendButton:hover {
     border-left: 4rem solid rgba(37, 224, 174, 1);
     cursor: pointer;
     outline: none;
 }
 
-body main .chat .input .sendButton:active, button:focus {
+.sendButton:active, button:focus {
     outline: none;
 }
 
-body main .avatar {
+.avatar {
     grid-row: 2/4;
     grid-column: 3/4;
 }
 
-body main .filters {
+.filters {
     grid-row: 5/7;
     grid-column: 3/4;
 }
