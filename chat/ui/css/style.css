@@ -1,202 +1,302 @@
 :root {
-    --first-bg-color: #55E0BB;
-    --second-bg-color:  #4EC1ED;
+  --first-bg-color: #55e0bb;
+  --second-bg-color: #4ec1ed;
 }
 
-::-webkit-scrollbar{
-    width: 11px;
+::-webkit-scrollbar {
+  width: 11px;
 }
 
-::-webkit-scrollbar-track{
-    background: #c4c6c8;
+::-webkit-scrollbar-track {
+  background: #c4c6c8;
 }
 
-::-webkit-scrollbar-thumb{
-    background: #4EC1ED;
-    border-radius: 10px;
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.4);
+::-webkit-scrollbar-thumb {
+  background: #4ec1ed;
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.4);
 }
 
 ::-webkit-scrollbar-thumb:vertical:hover,
-::-webkit-scrollbar-thumb:horizontal:hover{
-    background: #55E0BB;
+::-webkit-scrollbar-thumb:horizontal:hover {
+  background: #55e0bb;
 }
 
 body {
-    font-family: 'Roboto', sans-serif;
-    font-size: 14px;
-    margin: 0;
-    max-height: 768px;
+  font-family: "Roboto", sans-serif;
+  font-size: 14px;
+  margin: 0;
+  max-height: 768px;
 }
 
 header {
-    width: 100%;
-    height: 7rem;
-    background-color: var(--first-bg-color);
+  width: 100%;
+  height: 7rem;
+  background-color: var(--first-bg-color);
 
-    display: grid;
-    grid-template-columns: minmax(3rem, 6rem) minmax(auto, 100%) minmax(3rem, 6rem);
-    grid-template-rows: minmax(7rem, auto);
+  display: grid;
+  grid-template-columns: minmax(3rem, 6rem) minmax(auto, 100%) minmax(
+      3rem,
+      6rem
+    );
+  grid-template-rows: minmax(7rem, auto);
 }
 
 .logoLink {
-    grid-column: 2/3;
+  grid-column: 2/3;
 }
 
 .logoImage {
-    height: 100%;
-    width: auto;
+  height: 100%;
+  width: auto;
 }
 
 .actions {
-    margin: auto 0;
-    grid-column: 3/4;
+  margin: auto 0;
+  grid-column: 3/4;
 }
 
 .headerLink {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 footer {
-    width: 100%;
-    height: 7rem;
-    background-color: var(--second-bg-color);
-    display: grid;
-    grid-template-columns: minmax(1rem, 2rem) minmax(10rem, 20rem) auto;
+  width: 100%;
+  height: 7rem;
+  background-color: var(--second-bg-color);
+  display: grid;
+  grid-template-columns: minmax(1rem, 2rem) minmax(10rem, 20rem) auto;
 }
 
 .footerInfoBlock {
-    position: relative;
-    margin: auto 0;
-    grid-column: 2/3;
+  position: relative;
+  margin: auto 0;
+  grid-column: 2/3;
 }
 
 .footerInfoText {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 main {
-    padding: max(2rem, 5%);
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    grid-template-rows: repeat(5, 1fr);
-    grid-gap: 1rem;
+  padding: max(2rem, 5%);
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: repeat(5, 1fr);
+  grid-gap: 1rem;
 }
 
 .usersList {
-    grid-row: 1/7;
-    grid-column: 1/2;
+  grid-row: 1/7;
+  grid-column: 1/2;
 }
 
 .chat {
-    border-radius: 5px;
-    grid-row: 1/7;
-    grid-column: 2/3;
+  border-radius: 5px;
+  grid-row: 1/7;
+  grid-column: 2/3;
 }
 
 .messages {
-    grid-row: 1/7;
-    grid-column: 2/3;
-    height: 11rem;
-    overflow-y: hidden;
-    display: grid;
+  grid-row: 1/7;
+  grid-column: 2/3;
+  height: 50vh;
+  overflow-y: hidden;
+  display: grid;
 }
 
 .messages:hover {
-    overflow-y: auto;
+  overflow-y: auto;
 }
 
-.commonComeMessage{
-    display: inline-block;
-    margin-right: 50%;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 5px;
-    background-color: var(--second-bg-color);
+.commonComeMessage {
+  display: inline-block;
+  margin-right: 50%;
+  padding: 1rem;
+  margin-bottom: 0rem;
+  border-radius: 5px;
+  background-color: var(--second-bg-color);
+  position: relative;
 }
 
-.commonSentMessage{
-    display: inline-block;
-    margin-left: 50%;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 5px;
-    background-color: var(--first-bg-color);
+.commonSentMessage {
+  display: inline-block;
+  margin-left: 50%;
+  padding: 1rem;
+  margin-bottom: 0rem;
+  border-radius: 5px;
+  background-color: var(--first-bg-color);
 }
 
-.input{
-    margin-top: 1rem;
-    border-radius: 5px;
-    height: 4rem;   
-    grid-row: 1/7;
-    grid-column: 2/3;
-    display: grid;
-    grid-template-columns: 7fr 1fr;
+.input {
+  margin-top: 1rem;
+  border-radius: 5px;
+  height: 4rem;
+  grid-row: 1/7;
+  grid-column: 2/3;
+  display: grid;
+  grid-template-columns: 7fr 1fr;
 }
 
-.messageInput{
-    border-radius: 5px;
-    background-color: #4EC1ED;
-    grid-column: 1/2;
-    display: grid;
-    grid-template-columns: 2fr 5fr;
-} 
+.messageInput {
+  border-radius: 5px;
+  background-color: #4ec1ed;
+  grid-column: 1/2;
+  display: grid;
+  grid-template-columns: 2fr 5fr;
+}
 
-.messageInput input{
-    border: 0;     
-    background: #4EC1ED; 
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
-    font-size: 14px; 
-    text-align: left center;
-    transition: 0.3s ease all;
-} 
+.messageInput input {
+  border: 0;
+  background: #4ec1ed;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  font-size: 14px;
+  text-align: left center;
+  transition: 0.3s ease all;
+}
 
-.messageInput input:focus{
-    color: #000000;
-    background: rgb(206, 206, 206);
-    outline: none;
-    font-size: 16px; 
-} 
+.messageInput input:focus {
+  color: #000000;
+  background: rgb(206, 206, 206);
+  outline: none;
+  font-size: 16px;
+}
 
-.inputText{
-    text-align: center;
-    grid-column: 1/2;
-    margin: auto 0;
-    word-break: break-all;
+.inputText {
+  text-align: center;
+  grid-column: 1/2;
+  margin: auto 0;
+  word-break: break-all;
 }
 
 .sendButton {
-    width: 4rem;
-    height: 4rem;
-    margin: auto auto;
-    margin-left: 1rem;
-    background: transparent;
-    outline: none;
-	border-top: 2rem solid transparent;
-	border-left: 4rem solid rgba(37, 224, 174, 0.5);
-    border-bottom: 2rem solid transparent;
-    border-right: none;
-    border-radius: 5px;
-    transition: 0.3s ease all;
+  width: 4rem;
+  height: 4rem;
+  margin: auto auto;
+  margin-left: 1rem;
+  background: transparent;
+  outline: none;
+  border-top: 2rem solid transparent;
+  border-left: 4rem solid rgba(37, 224, 174, 0.5);
+  border-bottom: 2rem solid transparent;
+  border-right: none;
+  border-radius: 5px;
+  transition: 0.3s ease all;
 }
 
 .sendButton:hover {
-    border-left: 4rem solid rgba(37, 224, 174, 1);
-    cursor: pointer;
-    outline: none;
+  border-left: 4rem solid rgba(37, 224, 174, 1);
+  cursor: pointer;
+  outline: none;
+  transform: scale(1.2);
 }
 
-.sendButton:active, button:focus {
-    outline: none;
+.sendButton:active,
+button:focus {
+  outline: none;
 }
 
 .avatar {
-    grid-row: 2/4;
-    grid-column: 3/4;
+  grid-row: 2/4;
+  grid-column: 3/4;
 }
 
 .filters {
-    grid-row: 5/7;
-    grid-column: 3/4;
+  grid-row: 5/7;
+  grid-column: 3/4;
+}
+
+.user {
+  font-size: 25px;
+  margin-bottom: 0.5em;
+  margin-left: 5em;
+}
+.user img {
+  width: 55px;
+  display: inline;
+}
+.avatar_img {
+  width: 150px;
+}
+.nickname {
+  font-size: 35px;
+  margin-left: 1em;
+}
+.avatar {
+  /* margin-left: 5em; */
+  margin: auto;
+}
+.avatar:hover {
+  transform: scale(1.1);
+  cursor: pointer;
+}
+.filters input {
+  display: block;
+  background-color: #cdfffd;
+  border: none;
+  font-size: 20px;
+  width: 15em;
+  margin-bottom: 0.5em;
+  margin-left: 2em;
+  border: solid 1px black;
+  border-radius: 10px;
+}
+#date {
+  width: 10em;
+  display: inline;
+}
+.filters span {
+  font-size: 20px;
+  color: gray;
+}
+.loadmore {
+  width: 20em;
+  margin: auto;
+  margin-bottom: 1em;
+  border: solid 1px black;
+  border-radius: 10px;
+  padding: 0.2em;
+  background-color: #cdfffd;
+  cursor: pointer;
+}
+#myInput {
+  background-color: #cdfffd;
+}
+.info1 {
+  margin-left: 1em;
+}
+.info2 {
+  text-align: right;
+  margin-right: 1em;
+}
+.user:hover {
+  background-color: #cdd6ff;
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+.imgMes1 {
+  width: 30px;
+  position: absolute;
+  right: 5px;
+  top: 7px;
+  visibility: hidden;
+  cursor: pointer;
+}
+.delete {
+  position: absolute;
+  right: 5px;
+  top: 7px;
+}
+.edit {
+  position: absolute;
+  right: 40px;
+  top: 7px;
+}
+.imgMes1:hover {
+  transform: scale(1.2);
+}
+.commonComeMessage:hover .imgMes1 {
+  visibility: visible;
 }
