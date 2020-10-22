@@ -1,0 +1,231 @@
+.index {
+  text-align: center;
+  font-family: sans-serif;
+}
+.container {
+  display: flex;
+  justify-content: center;
+  border: rgba(128, 128, 128, 0.329) solid 1px;
+  border-radius: 5px;
+  width: 58em;
+  margin: auto;
+  margin-bottom: 1em;
+  position: relative;
+}
+.image {
+  position: relative;
+}
+img {
+  width: 15em;
+  margin: 0.7em;
+  z-index: 3;
+}
+.text {
+  text-align: left;
+  padding-left: 1em;
+  min-height: 25em;
+  width: 40em;
+}
+h1 {
+  color: rgb(0, 72, 180);
+  font-size: 20px;
+  margin-bottom: 0.1em;
+  cursor: pointer;
+}
+.rating {
+  font-size: 13px;
+}
+.rating div {
+  background-color: rgb(0, 72, 180);
+  color: white;
+  display: inline;
+  margin: 0 0 1em 0.5em;
+  vertical-align: 5px;
+  padding: 0.2em;
+  border-radius: 2px;
+}
+.pic1 {
+  width: 100px;
+  margin: 0;
+  margin-right: 0.5em;
+}
+.pic2 {
+  width: 20px;
+  margin: 0;
+}
+.location {
+  font-size: 13px;
+  color: rgb(0, 72, 180);
+  margin: 1em auto;
+}
+a {
+  text-decoration: underline;
+}
+.persons {
+  margin-left: 1em;
+  font-size: 13px;
+  font-weight: bold;
+}
+.description {
+  margin-top: 2em;
+  display: flex;
+  font-size: 13px;
+}
+.descr2 {
+  margin-left: 2em;
+}
+h4 {
+  margin: 0;
+  color: rgb(0, 72, 180);
+}
+.bedroom {
+  margin-bottom: 0.5em;
+  margin-top: 0.5em;
+}
+.beds {
+  margin-bottom: 0.5em;
+}
+.free,
+.risk {
+  color: rgb(0, 112, 0);
+  margin-bottom: 0.5em;
+}
+.warning {
+  color: red;
+  font-weight: bold;
+}
+.free {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+.descr1 img {
+  width: 20px;
+  margin: 0;
+}
+.rate {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  display: flex;
+  cursor: pointer;
+}
+.title {
+  color: rgb(0, 38, 95);
+  font-weight: bold;
+  margin-right: 0.6em;
+  padding-top: 0.2em;
+}
+.reviews {
+  color: grey;
+  font-size: 12px;
+}
+.rate_pic {
+  background-color: rgb(0, 38, 95);
+  color: white;
+  padding: 0.6em;
+  border-radius: 10px 10px 10px 0px;
+}
+.price {
+  position: absolute;
+  bottom: 1em;
+  right: 1em;
+  text-align: right;
+}
+.price h1 {
+  display: inline;
+  color: black;
+}
+.price span {
+  color: grey;
+  font-size: 12px;
+  text-decoration: line-through;
+}
+.time,
+.taxes {
+  color: grey;
+  font-size: 12px;
+  margin-bottom: 0.5em;
+}
+.cost {
+  margin-bottom: 0.5em;
+}
+.price button {
+  background-color: rgb(0, 72, 180);
+  color: white;
+  border: none;
+  font-size: 17px;
+  padding: 0.7em 1em;
+  cursor: pointer;
+}
+.price button:hover {
+  background-color: rgb(0, 36, 90);
+}
+
+.heart {
+  z-index: 10;
+  border: none;
+  position: absolute;
+  top: 1.3em;
+  right: 2.5em;
+  width: 20px;
+  height: 35px;
+  background-color: grey;
+  opacity: 0.8;
+  -webkit-border-radius: 5px 5px 0 0;
+  -moz-border-radius: 5px 5px 0 0;
+  border-radius: 10px 10px 0 0;
+  -webkit-transform: rotate(315deg);
+  -moz-transform: rotate(315deg);
+  -ms-transform: rotate(315deg);
+  -o-transform: rotate(315deg);
+  transform: rotate(315deg);
+}
+.heart:before {
+  position: absolute;
+  width: 35px;
+  height: 20px;
+  left: 0;
+  bottom: 0;
+  content: "";
+  background-color: grey;
+  -webkit-border-radius: 5px 5px 0 0;
+  -moz-border-radius: 5px 5px 0 0;
+  border-radius: 0 10px 10px 0;
+}
+.heart:hover:before,
+.heart:hover {
+  box-shadow: none;
+  background-color: black;
+  cursor: pointer;
+}
+.heart:focus:before,
+.heart:focus {
+  box-shadow: none;
+  background-color: red;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.breakfast {
+  position: absolute;
+  top: 1.5em;
+  left: -22px;
+  background-color: rgb(0, 112, 0);
+  color: white;
+  font-size: 14px;
+  width: 8.5em;
+  padding: 0.5em 1em;
+  z-index: 5;
+}
+.triangle {
+  position: absolute;
+  z-index: -1;
+  top: 3.2em;
+  left: -22px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0.5em 0.5em 0.5em 0.5em;
+  border-color: rgb(0, 112, 0) rgb(0, 112, 0) transparent transparent;
+  /* filter: drop-shadow(0 0 5px #000);   */
+}
