@@ -161,7 +161,20 @@ const chat = (function () {
 
     add(message) {
       if (MessageList.validate(message)) {
-        this._messages.push(message);
+        const newMessage = new chat.Message(
+          message.id,
+          message.text,
+          message.createdAt,
+          message.author,
+          message.isPersonal,
+          message.to,
+        );
+        /*
+          пока что от пришедшего объекта берутся все поля,
+          в дальнейшем будут использоваться только нужные,
+          а остальные формироваться здесь же (например дата, id)
+        */
+        this._messages.push(newMessage);
         return true;
       }
       return false;
@@ -203,7 +216,12 @@ const chat = (function () {
           if (this.user) {
             if (editableMessage.author === this.user) {
               const index = this._messages.indexOf(editableMessage);
-              this._messages[index] = editedMessage;
+              this._messages[index].id = editedMessage.id;
+              this._messages[index].author = editedMessage.author;
+              this._messages[index].text = editedMessage.text;
+              this._messages[index].isPersonal = editedMessage.isPersonal;
+              this._messages[index].to = editedMessage.to;
+              this._messages[index].createdAt = editedMessage.createdAt;
               return true;
             }
             return false;
