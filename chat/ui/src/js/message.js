@@ -168,15 +168,15 @@ const chat = (function () {
     }
 
     addAll(messages) {
-      const nonValidateMessages = [];
+      const unvalidatedMessages = [];
       messages.forEach((message) => {
         if (MessageList.validate(message)) {
           this._messages.push(message);
         } else {
-          nonValidateMessages.push(message);
+          unvalidatedMessages.push(message);
         }
       });
-      return nonValidateMessages;
+      return unvalidatedMessages;
     }
 
     remove(id) {
@@ -229,116 +229,180 @@ const chat = (function () {
   };
 }());
 
-const messages = [
-  new chat.Message(
-    '0',
-    'Hello User1!',
-    new Date(2020, 11, 1, 13, 30, 27),
-    'User2',
-    false,
-  ),
+(function Tests() {
+  const readyMessages = [
+    new chat.Message(
+      '0',
+      'Hello User1!',
+      new Date(2020, 11, 1, 13, 30, 27),
+      'User2',
+      false,
+    ),
 
-  new chat.Message(
-    '1',
-    'Hello!',
-    new Date(2020, 11, 1, 13, 40, 53),
-    'User1',
-    false,
-  ),
+    new chat.Message(
+      '1',
+      'Hello!',
+      new Date(2020, 11, 1, 13, 40, 53),
+      'User1',
+      false,
+    ),
 
-  new chat.Message(
-    '2',
-    'Hello User2!',
-    new Date(2020, 11, 1, 13, 50, 44),
-    'User1',
-    true,
-    'User2',
-  ),
+    new chat.Message(
+      '2',
+      'Hello User2!',
+      new Date(2020, 11, 1, 13, 50, 44),
+      'User1',
+      true,
+      'User2',
+    ),
 
-  new chat.Message(
-    '3',
-    'GG',
-    new Date(2020, 11, 2, 11, 10, 54),
-    'user3',
-    false,
-  ),
-];
+    new chat.Message(
+      '3',
+      'GG',
+      new Date(2020, 11, 2, 11, 10, 54),
+      'user3',
+      false,
+    ),
+  ];
 
-let messageList = new chat.MessageList(messages);
+  function _testMessageFilter() {
+    console.log('Test1: Testing getPage filter. \n');
 
-console.log('test0: testing getPage filter \n');
-const filterConfig = new chat.FilterConfig(
-  'User2',
-  new Date(2020, 11, 1, 13, 20, 27),
-  new Date(2020, 11, 1, 13, 59, 27),
-  'Hello User1!',
-);
-let filteredMessages = messageList.getPage(null, null, filterConfig);
-filteredMessages.forEach((message) => {
-  console.log(message);
-});
+    const _messageList = new chat.MessageList(readyMessages);
+    const _filterConfig = new chat.FilterConfig(
+      'User2',
+      new Date(2020, 11, 1, 13, 20, 27),
+      new Date(2020, 11, 1, 13, 59, 27),
+      'Hello User1!',
+    );
+    const _messages = _messageList.getPage(undefined, undefined, _filterConfig);
 
-console.log('test1: testing getPage method \n');
-filteredMessages = messageList.getPage(1, 2);
-filteredMessages.forEach((message) => {
-  console.log(message);
-});
+    const _resultText = `Status: ${(_messages.length === 1 && _messages[0].id === '0') ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
 
-console.log('test2: testing get method \n');
-console.log(messageList.get('2'));
+  function _testGetPageMethod() {
+    console.log('Test2: Testing getPage method. \n');
 
-console.log('test3: testing validate method \n');
-const msg1 = new chat.Message('12', 'Text', new Date(), 'author', false);
-console.log(chat.MessageList.validate(msg1));
+    const _messageList = new chat.MessageList(readyMessages);
+    const _messages = _messageList.getPage(1, 2);
 
-console.log('test4: testing add method \n');
-messageList.add(msg1);
-console.log(messageList.get('12'));
+    const _resultText = `Status: ${(_messages.length === 2 && _messages[0].id === '1' && _messages[1].id === '2') ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
 
-console.log('test5:  testing edit method \n');
-messageList.edit('12', new chat.Message('4', 'Goodbye', new Date(), 'user3', false));
-console.log(messageList.get('4'));
+  function _testGetMethod() {
+    console.log('Test2: Testing get method. \n');
 
-console.log('test6: testing addAll method \n');
-const messages2 = [
-  new chat.Message('5', 'text', new Date(), 'author', false),
-  new chat.Message(5, 'text', new Date(), 'author', false),
-];
-const nonValidateMessages = messageList.addAll(messages2);
-console.log(messageList.getPage(undefined, undefined, undefined));
-console.log('non validate messages: ');
-console.log(nonValidateMessages[0]);
+    const _messageList = new chat.MessageList(readyMessages);
+    const _message = _messageList.get('2');
 
-console.log('test7: testing readonly fields \n');
-const msg2 = new chat.Message('0', 'text', new Date(), 'author', false);
-msg2.id = '1';
-msg2.createdAt = new Date(2000);
-msg2.author = 'asdsfd';
-console.log(msg2);
+    const _resultText = `Status: ${(_message.id === '2') ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
 
-console.log('test8: testing of user field \n');
-messageList.user = 'User1';
-messageList.remove('0');
-messageList.remove('1');
-messageList.edit('0', new chat.Message('0', 'text', new Date(), 'User1', false));
-messageList.user = 'User2';
-messageList.edit('0', new chat.Message('0', 'text', new Date(), 'User2', false));
-let msgs = messageList.getPage(undefined, undefined, undefined);
-msgs.forEach((message) => {
-  console.log(message);
-});
+  function _testValidateMethod() {
+    console.log('Test3: Testing validate method. \n');
 
-console.log('test9: testing of getPage with user field \n');
-messageList = new chat.MessageList(messages);
-messageList.user = 'User1';
-msgs = messageList.getPage(undefined, undefined, undefined);
-msgs.forEach((message) => {
-  console.log(message);
-});
-// убирается сообщение с id == 2, т.к. оно недоступно пользователю User1
+    const _message = new chat.Message('12', 'Text', new Date(), 'author', false);
+    const _isValidate = chat.MessageList.validate(_message);
 
-console.log('test10: testing of clear method \n');
-messageList = new chat.MessageList(messages);
-messageList.clear();
-msgs = messageList.getPage(undefined, undefined, undefined);
-console.log(msgs.length); // ожидается размер сообщений == 0
+    const _resultText = `Status: ${(_isValidate === true) ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
+
+  function _testAddMethod() {
+    console.log('Test4: Testing add method. \n');
+
+    const _messageList = new chat.MessageList(readyMessages);
+    const _message = new chat.Message('12', 'Text', new Date(), 'author', false);
+    _messageList.add(_message);
+
+    const _resultText = `Status: ${(_messageList.get('12').id === '12') ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
+
+  function _testEditMethod() {
+    console.log('Test5: Testing edit method. \n');
+
+    const _messageList = new chat.MessageList(readyMessages);
+    _messageList.edit('3', new chat.Message('4', 'Goodbye', new Date(), 'user3', false));
+
+    const _resultText = `Status: ${(_messageList.get('4').text === 'Goodbye') ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
+
+  function _testAddAllMethod() {
+    console.log('Test6: Testing addAll method. \n');
+
+    const _messageList = new chat.MessageList(readyMessages);
+    const _anotherReadyMessages = [
+      new chat.Message('5', 'text', new Date(), 'author', false),
+      new chat.Message(5, 'text', new Date(), 'author', false),
+    ];
+    const _unvalidatedMessages = _messageList.addAll(_anotherReadyMessages);
+
+    const _condition = _unvalidatedMessages.length === 1 && _unvalidatedMessages[0].id === 5 && _messageList.get('5');
+    const _resultText = `Status: ${(_condition) ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
+
+  function _testReadonlyFields() {
+    console.log('Test7: Testing readonly fields. \n');
+
+    const _date = new Date();
+    const _message = new chat.Message('0', 'text', new Date(), 'author', false);
+    _message.id = '1';
+    _message.createdAt = new Date(2000);
+    _message.author = 'asdsfd';
+
+    const _resultText = `Status: ${(_message.id === '0' && _message.createdAt.toString() === _date.toString() && _message.author === 'author') ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
+
+  function _testUserField() {
+    console.log('Test8: Testing of user field. \n');
+
+    const _messageList = new chat.MessageList(readyMessages);
+    _messageList.user = 'User1';
+    _messageList.edit('0', new chat.Message('0', 'text', new Date(), 'User1', false));
+
+    const _resultText = `Status: ${(_messageList.get('0').author === 'User2') ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
+
+  function _testGetPageMethodWithUserField() {
+    console.log('Test9: Testing of getPage with user field \n');
+
+    let _messageList = new chat.MessageList(readyMessages);
+    _messageList.user = 'User1';
+    const _messages = _messageList.getPage(undefined, undefined, undefined);
+    _messageList = new chat.MessageList(_messages);
+
+    const _resultText = `Status: ${(_messageList.get('2') === undefined) ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
+
+  function _testClearMethod() {
+    console.log('Test10: Testing of clear method. \n');
+
+    const _messageList = new chat.MessageList(readyMessages);
+    _messageList.clear();
+    const _messages = _messageList.getPage(undefined, undefined, undefined);
+
+    const _resultText = `Status: ${(_messages.length === 0) ? 'accepted!' : 'decline!'}`;
+    console.log(_resultText);
+  }
+
+  _testMessageFilter();
+  _testGetPageMethod();
+  _testGetMethod();
+  _testValidateMethod();
+  _testAddMethod();
+  _testEditMethod();
+  _testAddAllMethod();
+  _testReadonlyFields();
+  _testUserField();
+  _testGetPageMethodWithUserField();
+  _testClearMethod();
+}());
