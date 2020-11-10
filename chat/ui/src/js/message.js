@@ -2,11 +2,11 @@ const chat = (function () {
   class Message {
     constructor(id, text, createdAt, author, isPersonal, to) {
       this._id = id;
-      this._text = text;
+      this.text = text;
       this._createdAt = createdAt;
       this._author = author;
-      this._isPersonal = isPersonal;
-      this._to = to;
+      this.isPersonal = isPersonal;
+      this.to = to;
     }
 
     get id() {
@@ -14,14 +14,6 @@ const chat = (function () {
     }
 
     set id(value) {}
-
-    get text() {
-      return this._text;
-    }
-
-    set text(value) {
-      this._text = value;
-    }
 
     get createdAt() {
       return this._createdAt;
@@ -34,22 +26,6 @@ const chat = (function () {
     }
 
     set author(value) {}
-
-    get isPersonal() {
-      return this._isPersonal;
-    }
-
-    set isPersonal(value) {
-      this._isPersonal = value;
-    }
-
-    get to() {
-      return this._to;
-    }
-
-    set to(value) {
-      this._to = value;
-    }
   }
 
   class FilterConfig {
@@ -118,10 +94,10 @@ const chat = (function () {
         }
       }
 
-      function _compareDates(message1, message2) {
+      function compareDates(message1, message2) {
         return message1.createdAt - message2.createdAt;
       }
-      messagesBuffer.sort(_compareDates);
+      messagesBuffer.sort(compareDates);
 
       if (this.user) {
         for (let i = 0; i < messagesBuffer.length; i++) {
@@ -138,13 +114,13 @@ const chat = (function () {
     }
 
     get(id) {
-      function _checkId(element) {
+      function checkId(element) {
         if (element.id === id) {
           return true;
         }
         return false;
       }
-      return this._messages.find(_checkId);
+      return this._messages.find(checkId);
     }
 
     static validate(message) {
@@ -169,11 +145,6 @@ const chat = (function () {
           message.isPersonal,
           message.to,
         );
-        /*
-          пока что от пришедшего объекта берутся все поля,
-          в дальнейшем будут использоваться только нужные,
-          а остальные формироваться здесь же (например дата, id)
-        */
         this._messages.push(newMessage);
         return true;
       }
@@ -210,24 +181,25 @@ const chat = (function () {
     }
 
     edit(id, editedMessage) {
+      function copy(sourceMessage, newMessage) {
+        sourceMessage.id = newMessage.id;
+        sourceMessage.author = newMessage.author;
+        sourceMessage.text = newMessage.text;
+        sourceMessage.isPersonal = newMessage.isPersonal;
+        sourceMessage.to = newMessage.to;
+        sourceMessage.createdAt = newMessage.createdAt;
+      }
       if (MessageList.validate(editedMessage)) {
         const editableMessage = this.get(id);
         if (editableMessage) {
           if (this.user) {
             if (editableMessage.author === this.user) {
-              const index = this._messages.indexOf(editableMessage);
-              this._messages[index].id = editedMessage.id;
-              this._messages[index].author = editedMessage.author;
-              this._messages[index].text = editedMessage.text;
-              this._messages[index].isPersonal = editedMessage.isPersonal;
-              this._messages[index].to = editedMessage.to;
-              this._messages[index].createdAt = editedMessage.createdAt;
+              copy(editableMessage, editedMessage);
               return true;
             }
             return false;
           }
-          const index = this._messages.indexOf(editableMessage);
-          this._messages[index] = editedMessage;
+          copy(editableMessage, editedMessage);
           return true;
         }
         return false;
@@ -286,130 +258,130 @@ const chat = (function () {
   function _testMessageFilter() {
     console.log('Test1: Testing getPage filter. \n');
 
-    const _messageList = new chat.MessageList(readyMessages);
-    const _filterConfig = new chat.FilterConfig(
+    const messageList = new chat.MessageList(readyMessages);
+    const filterConfig = new chat.FilterConfig(
       'User2',
       new Date(2020, 11, 1, 13, 20, 27),
       new Date(2020, 11, 1, 13, 59, 27),
       'Hello User1!',
     );
-    const _messages = _messageList.getPage(undefined, undefined, _filterConfig);
+    const messages = messageList.getPage(undefined, undefined, filterConfig);
 
-    const _resultText = `Status: ${(_messages.length === 1 && _messages[0].id === '0') ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(messages.length === 1 && messages[0].id === '0') ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testGetPageMethod() {
     console.log('Test2: Testing getPage method. \n');
 
-    const _messageList = new chat.MessageList(readyMessages);
-    const _messages = _messageList.getPage(1, 2);
+    const messageList = new chat.MessageList(readyMessages);
+    const messages = messageList.getPage(1, 2);
 
-    const _resultText = `Status: ${(_messages.length === 2 && _messages[0].id === '1' && _messages[1].id === '2') ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(messages.length === 2 && messages[0].id === '1' && messages[1].id === '2') ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testGetMethod() {
     console.log('Test2: Testing get method. \n');
 
-    const _messageList = new chat.MessageList(readyMessages);
-    const _message = _messageList.get('2');
+    const messageList = new chat.MessageList(readyMessages);
+    const message = messageList.get('2');
 
-    const _resultText = `Status: ${(_message.id === '2') ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(message.id === '2') ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testValidateMethod() {
     console.log('Test3: Testing validate method. \n');
 
-    const _message = new chat.Message('12', 'Text', new Date(), 'author', false);
-    const _isValidate = chat.MessageList.validate(_message);
+    const message = new chat.Message('12', 'Text', new Date(), 'author', false);
+    const isValidate = chat.MessageList.validate(message);
 
-    const _resultText = `Status: ${(_isValidate === true) ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(isValidate === true) ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testAddMethod() {
     console.log('Test4: Testing add method. \n');
 
-    const _messageList = new chat.MessageList(readyMessages);
-    const _message = new chat.Message('12', 'Text', new Date(), 'author', false);
-    _messageList.add(_message);
+    const messageList = new chat.MessageList(readyMessages);
+    const message = new chat.Message('12', 'Text', new Date(), 'author', false);
+    messageList.add(message);
 
-    const _resultText = `Status: ${(_messageList.get('12').id === '12') ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(messageList.get('12').id === '12') ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testEditMethod() {
     console.log('Test5: Testing edit method. \n');
 
-    const _messageList = new chat.MessageList(readyMessages);
-    _messageList.edit('3', new chat.Message('4', 'Goodbye', new Date(), 'user3', false));
+    const messageList = new chat.MessageList(readyMessages);
+    messageList.edit('3', new chat.Message('4', 'Goodbye', new Date(), 'user3', false));
 
-    const _resultText = `Status: ${(_messageList.get('4').text === 'Goodbye') ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(messageList.get('4').text === 'Goodbye') ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testAddAllMethod() {
     console.log('Test6: Testing addAll method. \n');
 
-    const _messageList = new chat.MessageList(readyMessages);
-    const _anotherReadyMessages = [
+    const messageList = new chat.MessageList(readyMessages);
+    const anotherReadyMessages = [
       new chat.Message('5', 'text', new Date(), 'author', false),
       new chat.Message(5, 'text', new Date(), 'author', false),
     ];
-    const _unvalidatedMessages = _messageList.addAll(_anotherReadyMessages);
+    const unvalidatedMessages = messageList.addAll(anotherReadyMessages);
 
-    const _condition = _unvalidatedMessages.length === 1 && _unvalidatedMessages[0].id === 5 && _messageList.get('5');
-    const _resultText = `Status: ${(_condition) ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const condition = unvalidatedMessages.length === 1 && unvalidatedMessages[0].id === 5 && messageList.get('5');
+    const resultText = `Status: ${(condition) ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testReadonlyFields() {
     console.log('Test7: Testing readonly fields. \n');
 
-    const _date = new Date();
-    const _message = new chat.Message('0', 'text', new Date(), 'author', false);
-    _message.id = '1';
-    _message.createdAt = new Date(2000);
-    _message.author = 'asdsfd';
+    const date = new Date();
+    const message = new chat.Message('0', 'text', new Date(), 'author', false);
+    message.id = '1';
+    message.createdAt = new Date(2000);
+    message.author = 'asdsfd';
 
-    const _resultText = `Status: ${(_message.id === '0' && _message.createdAt.toString() === _date.toString() && _message.author === 'author') ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(message.id === '0' && message.createdAt.toString() === date.toString() && message.author === 'author') ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testUserField() {
     console.log('Test8: Testing of user field. \n');
 
-    const _messageList = new chat.MessageList(readyMessages);
-    _messageList.user = 'User1';
-    _messageList.edit('0', new chat.Message('0', 'text', new Date(), 'User1', false));
+    const messageList = new chat.MessageList(readyMessages);
+    messageList.user = 'User1';
+    messageList.edit('0', new chat.Message('0', 'text', new Date(), 'User1', false));
 
-    const _resultText = `Status: ${(_messageList.get('0').author === 'User2') ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(messageList.get('0').author === 'User2') ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testGetPageMethodWithUserField() {
     console.log('Test9: Testing of getPage with user field \n');
 
-    let _messageList = new chat.MessageList(readyMessages);
-    _messageList.user = 'User1';
-    const _messages = _messageList.getPage(undefined, undefined, undefined);
-    _messageList = new chat.MessageList(_messages);
+    let messageList = new chat.MessageList(readyMessages);
+    messageList.user = 'User1';
+    const messages = messageList.getPage(undefined, undefined, undefined);
+    messageList = new chat.MessageList(messages);
 
-    const _resultText = `Status: ${(_messageList.get('2') === undefined) ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(messageList.get('2') === undefined) ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   function _testClearMethod() {
     console.log('Test10: Testing of clear method. \n');
 
-    const _messageList = new chat.MessageList(readyMessages);
-    _messageList.clear();
-    const _messages = _messageList.getPage(undefined, undefined, undefined);
+    const messageList = new chat.MessageList(readyMessages);
+    messageList.clear();
+    const messages = messageList.getPage(undefined, undefined, undefined);
 
-    const _resultText = `Status: ${(_messages.length === 0) ? 'accepted!' : 'decline!'}`;
-    console.log(_resultText);
+    const resultText = `Status: ${(messages.length === 0) ? 'accepted!' : 'decline!'}`;
+    console.log(resultText);
   }
 
   _testMessageFilter();
