@@ -1,4 +1,5 @@
-const chat = (function () {
+/* eslint-disable max-len */
+const MessagesModule = (function () {
   class Message {
     constructor(id, text, createdAt, author, isPersonal, to) {
       this._id = id;
@@ -137,7 +138,7 @@ const chat = (function () {
 
     add(message) {
       if (MessageList.validate(message)) {
-        const newMessage = new chat.Message(
+        const newMessage = new MessagesModule.Message(
           message.id,
           message.text,
           message.createdAt,
@@ -219,7 +220,103 @@ const chat = (function () {
   };
 }());
 
-(function Tests() {
+const messages = [
+  new MessagesModule.Message(
+    '0',
+    'Hello User1!',
+    new Date(2020, 11, 1, 13, 30, 27),
+    'User2',
+    false,
+  ),
+
+  new MessagesModule.Message(
+    '1',
+    'Hello!',
+    new Date(2020, 11, 1, 13, 40, 53),
+    'User1',
+    false,
+  ),
+
+  new MessagesModule.Message(
+    '2',
+    'Hello User2!',
+    new Date(2020, 11, 1, 13, 50, 44),
+    'User1',
+    true,
+    'User2',
+  ),
+
+  new MessagesModule.Message(
+    '3',
+    'GG',
+    new Date(2020, 11, 2, 11, 10, 54),
+    'user3',
+    false,
+  ),
+];
+const messageList = new MessagesModule.MessageList(messages);
+messageList.user = 'User1';
+
+class MessagesView {
+  constructor(containerId) {
+    this.containerId = containerId;
+  }
+
+  display(params) {
+    // eslint-disable-next-line no-undef
+    const container = document.getElementById(this.containerId);
+    container.insertAdjacentHTML('beforeend', params);
+  }
+}
+const messagesView = new MessagesView('messages');
+
+/* function addMessage(text, isPersonal, to) {
+
+}
+
+function editMessage() {
+
+}
+
+function removeMessage() {
+
+} */
+
+function showMessages() {
+  let messagesHTML = '';
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+  };
+
+  messageList.getPage(undefined, undefined).forEach((message) => {
+    const infoString = `Author: ${message.author}, ${message.createdAt.toLocaleString('en-US', options)}`;
+    if (message.author === messageList.user) {
+      messagesHTML
+      += `<div class="commonSentMessage">
+        ${message.text}
+        <img class="imgMes1 delete" src="https://icon-library.com/images/deleted-icon/deleted-icon-18.jpg"/>
+        <img class="imgMes1 edit" src="https://upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/1024px-OOjs_UI_icon_edit-ltr-progressive.svg.png"/>
+      </div>  
+      <div class="info info2">${infoString}</div> `;
+    } else {
+      messagesHTML
+      += `<div class="commonComeMessage">
+        ${message.text}
+      </div>  
+      <div class="info info1">${infoString}</div> `;
+    }
+  });
+  messagesView.display(messagesHTML);
+}
+
+showMessages();
+
+/* (function Tests() {
   const readyMessages = [
     new chat.Message(
       '0',
@@ -316,9 +413,9 @@ const chat = (function () {
     console.log('Test5: Testing edit method. \n');
 
     const messageList = new chat.MessageList(readyMessages);
-    messageList.edit('3', new chat.Message('4', 'Goodbye', new Date(), 'user3', false));
+    messageList.edit('3', new chat.Message('3', 'Goodbye2', new Date(), 'user3', false));
 
-    const resultText = `Status: ${(messageList.get('4').text === 'Goodbye') ? 'accepted!' : 'decline!'}`;
+    const resultText = `Status: ${(messageList.get('3').text === 'Goodbye2') ? 'accepted!' : 'decline!'}`;
     console.log(resultText);
   }
 
@@ -395,4 +492,4 @@ const chat = (function () {
   _testUserField();
   _testGetPageMethodWithUserField();
   _testClearMethod();
-}());
+}()); */

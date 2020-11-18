@@ -116,7 +116,6 @@ main {
   margin-bottom: 0rem;
   border-radius: 5px;
   background-color: var(--second-bg-color);
-  position: relative;
 }
 
 .commonSentMessage {
@@ -126,6 +125,7 @@ main {
   margin-bottom: 0rem;
   border-radius: 5px;
   background-color: var(--first-bg-color);
+  position: relative;
 }
 
 .input {
@@ -263,9 +263,11 @@ button:focus {
   background-color: #cdfffd;
 }
 .info1 {
+  font-size: 10px;
   margin-left: 1em;
 }
 .info2 {
+  font-size: 10px;
   text-align: right;
   margin-right: 1em;
 }
@@ -296,6 +298,6 @@ button:focus {
 .imgMes1:hover {
   transform: scale(1.2);
 }
-.commonComeMessage:hover .imgMes1 {
+.commonSentMessage:hover .imgMes1 {
   visibility: visible;
 }
