@@ -1,5 +1,8 @@
+//
+// CHAT BASE CLASSES
+//
 /* eslint-disable max-len */
-const MessagesModule = (function () {
+const chat = (function () {
   class Message {
     constructor(id, text, createdAt, author, isPersonal, to) {
       this._id = id;
@@ -129,7 +132,7 @@ const MessagesModule = (function () {
       || !(typeof (message.author) === 'string')
       || !(typeof (message.text) === 'string')
       || !(message.createdAt instanceof Date)
-      || !(typeof (message.isPersonal) === 'boolean')
+      || (message.isPersonal && !(typeof (message.isPersonal) === 'boolean'))
       || (message.to && !(typeof (message.to) === 'string'))) {
         return false;
       }
@@ -137,8 +140,17 @@ const MessagesModule = (function () {
     }
 
     add(message) {
+      if (message.author === undefined) {
+        message._author = this.user;
+      }
+      if (message.id === undefined) {
+        message._id = String(Number(this._messages[this._messages.length - 1].id) + 1);
+      }
+      if (message.createdAt === undefined) {
+        message._createdAt = new Date();
+      }
       if (MessageList.validate(message)) {
-        const newMessage = new MessagesModule.Message(
+        const newMessage = new chat.Message(
           message.id,
           message.text,
           message.createdAt,
@@ -155,9 +167,7 @@ const MessagesModule = (function () {
     addAll(messages) {
       const unvalidatedMessages = [];
       messages.forEach((message) => {
-        if (MessageList.validate(message)) {
-          this._messages.push(message);
-        } else {
+        if (!this.add(message)) {
           unvalidatedMessages.push(message);
         }
       });
@@ -190,6 +200,15 @@ const MessagesModule = (function () {
         sourceMessage.to = newMessage.to;
         sourceMessage.createdAt = newMessage.createdAt;
       }
+      if (editedMessage.author === undefined) {
+        editedMessage._author = this.user;
+      }
+      if (editedMessage.id === undefined) {
+        editedMessage._id = String(Number(this._messages[this._messages.length - 1].id) + 1);
+      }
+      if (editedMessage.createdAt === undefined) {
+        editedMessage._createdAt = new Date();
+      }
       if (MessageList.validate(editedMessage)) {
         const editableMessage = this.get(id);
         if (editableMessage) {
@@ -213,115 +232,65 @@ const MessagesModule = (function () {
     }
   }
 
+  class MessagesView {
+    constructor(containerId) {
+      this.containerId = containerId;
+    }
+
+    display(params) {
+      // eslint-disable-next-line no-undef
+      const container = document.getElementById(this.containerId);
+      container.innerHTML = params;
+    }
+  }
+
+  class User {
+    constructor(name, avatar) {
+      this.name = name;
+      this.avatar = avatar;
+    }
+  }
+
+  class UserList {
+    constructor(users, activeUsers) {
+      this.users = users;
+      this.activeUsers = activeUsers;
+    }
+  }
+
+  class ActiveUsersView {
+    constructor(containerId) {
+      this.containerId = containerId;
+    }
+
+    display(params) {
+      // eslint-disable-next-line no-undef
+      const container = document.getElementById(this.containerId);
+      container.innerHTML = params;
+    }
+  }
+
   return {
     Message,
     FilterConfig,
     MessageList,
+    MessagesView,
+    UserList,
+    ActiveUsersView,
+    User,
   };
 }());
 
-const messages = [
-  new MessagesModule.Message(
-    '0',
-    'Hello User1!',
-    new Date(2020, 11, 1, 13, 30, 27),
-    'User2',
-    false,
-  ),
+// CHAT LOGIC
+// MVC
+//
 
-  new MessagesModule.Message(
-    '1',
-    'Hello!',
-    new Date(2020, 11, 1, 13, 40, 53),
-    'User1',
-    false,
-  ),
-
-  new MessagesModule.Message(
-    '2',
-    'Hello User2!',
-    new Date(2020, 11, 1, 13, 50, 44),
-    'User1',
-    true,
-    'User2',
-  ),
-
-  new MessagesModule.Message(
-    '3',
-    'GG',
-    new Date(2020, 11, 2, 11, 10, 54),
-    'user3',
-    false,
-  ),
-];
-const messageList = new MessagesModule.MessageList(messages);
-messageList.user = 'User1';
-
-class MessagesView {
-  constructor(containerId) {
-    this.containerId = containerId;
-  }
-
-  display(params) {
-    // eslint-disable-next-line no-undef
-    const container = document.getElementById(this.containerId);
-    container.insertAdjacentHTML('beforeend', params);
-  }
-}
-const messagesView = new MessagesView('messages');
-
-/* function addMessage(text, isPersonal, to) {
-
-}
-
-function editMessage() {
-
-}
-
-function removeMessage() {
-
-} */
-
-function showMessages() {
-  let messagesHTML = '';
-  const options = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-  };
-
-  messageList.getPage(undefined, undefined).forEach((message) => {
-    const infoString = `Author: ${message.author}, ${message.createdAt.toLocaleString('en-US', options)}`;
-    if (message.author === messageList.user) {
-      messagesHTML
-      += `<div class="commonSentMessage">
-        ${message.text}
-        <img class="imgMes1 delete" src="https://icon-library.com/images/deleted-icon/deleted-icon-18.jpg"/>
-        <img class="imgMes1 edit" src="https://upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/1024px-OOjs_UI_icon_edit-ltr-progressive.svg.png"/>
-      </div>  
-      <div class="info info2">${infoString}</div> `;
-    } else {
-      messagesHTML
-      += `<div class="commonComeMessage">
-        ${message.text}
-      </div>  
-      <div class="info info1">${infoString}</div> `;
-    }
-  });
-  messagesView.display(messagesHTML);
-}
-
-showMessages();
-
-/* (function Tests() {
-  const readyMessages = [
+const ChatLogic = (function () {
+  const messages = [
     new chat.Message(
       '0',
       'Hello User1!',
-      new Date(2020, 11, 1, 13, 30, 27),
+      new Date(),
       'User2',
       false,
     ),
@@ -329,7 +298,7 @@ showMessages();
     new chat.Message(
       '1',
       'Hello!',
-      new Date(2020, 11, 1, 13, 40, 53),
+      new Date(),
       'User1',
       false,
     ),
@@ -337,7 +306,7 @@ showMessages();
     new chat.Message(
       '2',
       'Hello User2!',
-      new Date(2020, 11, 1, 13, 50, 44),
+      new Date(),
       'User1',
       true,
       'User2',
@@ -346,7 +315,140 @@ showMessages();
     new chat.Message(
       '3',
       'GG',
-      new Date(2020, 11, 2, 11, 10, 54),
+      new Date(),
+      'user3',
+      false,
+    ),
+  ];
+  const messageList = new chat.MessageList(messages);
+  messageList.user = 'User1';
+
+  const messagesView = new chat.MessagesView('messages');
+
+  function addMessage(text, isPersonal, to) {
+    messageList.add(new chat.Message(undefined, text, undefined, undefined, undefined, isPersonal, to));
+    this.showMessages();
+  }
+
+  function editMessage(id, text, isPersonal, to) {
+    messageList.edit(id, new chat.Message(undefined, text, undefined, undefined, isPersonal, to));
+    this.showMessages();
+  }
+
+  function removeMessage(id) {
+    messageList.remove(id);
+    this.showMessages();
+  }
+
+  function showMessages() {
+    let messagesHTML = '';
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+    };
+    messageList.getPage(undefined, undefined).forEach((message) => {
+      const infoString = `Author: ${message.author}, ${message.createdAt.toLocaleString('en-US', options)}`;
+      if (message.author === messageList.user) {
+        messagesHTML
+        += `<div class="commonSentMessage">
+          ${message.text}
+          <img class="imgMes1 delete" src="https://icon-library.com/images/deleted-icon/deleted-icon-18.jpg"/>
+          <img class="imgMes1 edit" src="https://upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/1024px-OOjs_UI_icon_edit-ltr-progressive.svg.png"/>
+        </div>  
+        <div class="info info2">${infoString}</div> `;
+      } else {
+        messagesHTML
+        += `<div class="commonComeMessage">
+          ${message.text}
+        </div>  
+        <div class="info info1">${infoString}</div> `;
+      }
+    });
+    messagesView.display(messagesHTML);
+  }
+
+  const users = [
+    new chat.User('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png'),
+    new chat.User('User2', 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png'),
+    new chat.User('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png'),
+    new chat.User('User4', 'https://cdn.iconscout.com/icon/free/png-256/avatar-372-456324.png'),
+  ];
+  const activeUsers = [
+    new chat.User('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png'),
+    new chat.User('User2', 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png'),
+    new chat.User('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png'),
+  ];
+  const userList = new chat.UserList(users, activeUsers);
+  const activeUsersView = new chat.ActiveUsersView('usersList');
+
+  function showActiveUsers() {
+    let activeUsersHTML = '';
+    userList.activeUsers.forEach((activeUser) => {
+      activeUsersHTML
+      += `<div class="user">
+          <img src="${activeUser.avatar}" alt="">
+          ${activeUser.name}
+      </div>`;
+    });
+    activeUsersView.display(activeUsersHTML);
+  }
+
+  return {
+    showMessages,
+    showActiveUsers,
+    addMessage,
+    editMessage,
+    removeMessage,
+  };
+}());
+
+//
+// TESTS
+//
+
+ChatLogic.showActiveUsers();
+ChatLogic.showMessages();
+ChatLogic.addMessage('Hi!');
+ChatLogic.editMessage('4', 'hi!!!)))');
+ChatLogic.removeMessage('4');
+
+/** todo: Доделать FiltersView, HeaderView, правильно выводить сообщения для автора/адресата, протестировать ChatLogic */
+
+(function MessagesTests() {
+  const readyMessages = [
+    new chat.Message(
+      '0',
+      'Hello User1!',
+      new Date(),
+      'User2',
+      false,
+    ),
+
+    new chat.Message(
+      '1',
+      'Hello!',
+      new Date(),
+      'User1',
+      false,
+    ),
+
+    new chat.Message(
+      '2',
+      'Hello User2!',
+      new Date(),
+      'User1',
+      true,
+      'User2',
+    ),
+
+    new chat.Message(
+      '3',
+      'GG',
+      new Date(),
       'user3',
       false,
     ),
@@ -492,4 +594,4 @@ showMessages();
   _testUserField();
   _testGetPageMethodWithUserField();
   _testClearMethod();
-}()); */
+}());
