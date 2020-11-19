@@ -35,10 +35,7 @@ header {
   background-color: var(--first-bg-color);
 
   display: grid;
-  grid-template-columns: minmax(3rem, 6rem) minmax(auto, 100%) minmax(
-      3rem,
-      6rem
-    );
+  grid-template-columns: minmax(3rem, 6rem) minmax(auto, 100%) minmax(3rem, 6rem) minmax(3rem, 6rem);
   grid-template-rows: minmax(7rem, auto);
 }
 
@@ -52,8 +49,13 @@ header {
 }
 
 .actions {
-  margin: auto 0;
-  grid-column: 3/4;
+  margin: auto auto;
+  grid-column: 4/5;
+  padding-bottom: 1rem;
+}
+
+.currentUser {
+  color: #ffffff;
 }
 
 .headerLink {
@@ -95,6 +97,9 @@ main {
   border-radius: 5px;
   grid-row: 1/7;
   grid-column: 2/3;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
 }
 
 .messages {
@@ -102,7 +107,7 @@ main {
   grid-column: 2/3;
   height: 50vh;
   overflow-y: hidden;
-  display: grid;
+  display: inline;
 }
 
 .messages:hover {
@@ -110,19 +115,15 @@ main {
 }
 
 .commonComeMessage {
-  display: inline-block;
   margin-right: 50%;
   padding: 1rem;
-  margin-bottom: 0rem;
   border-radius: 5px;
   background-color: var(--second-bg-color);
 }
 
 .commonSentMessage {
-  display: inline-block;
   margin-left: 50%;
   padding: 1rem;
-  margin-bottom: 0rem;
   border-radius: 5px;
   background-color: var(--first-bg-color);
   position: relative;
@@ -197,11 +198,6 @@ button:focus {
   outline: none;
 }
 
-.avatar {
-  grid-row: 1/3;
-  grid-column: 3/4;
-}
-
 .filters {
   grid-row: 4/6;
   grid-column: 3/4;
@@ -215,20 +211,17 @@ button:focus {
   width: 55px;
   display: inline;
 }
-.avatar_img {
-  width: 150px;
-}
-.nickname {
-  font-size: 35px;
-  margin-left: 1em;
-}
-.avatar {
-  /* margin-left: 5em; */
-  margin: auto;
-}
-.avatar:hover {
+.currentUser:hover {
   transform: scale(1.1);
   cursor: pointer;
+}
+.avatar {
+  margin: auto auto;
+  grid-row: 0/1;
+  grid-column: 3/4;
+}
+.avatar img {
+  width: 100%;
 }
 .filters input {
   display: block;
@@ -253,6 +246,7 @@ button:focus {
   width: 20em;
   margin: auto;
   margin-bottom: 1em;
+  margin-left: 25%;
   border: solid 1px black;
   border-radius: 10px;
   padding: 0.2em;
@@ -264,12 +258,12 @@ button:focus {
 }
 .info1 {
   font-size: 10px;
-  margin-left: 1em;
+  margin-bottom: 1rem;
 }
 .info2 {
   font-size: 10px;
-  text-align: right;
-  margin-right: 1em;
+  padding-left: 50%;
+  margin-bottom: 1rem;
 }
 .user:hover {
   background-color: #cdd6ff;

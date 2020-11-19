@@ -15,7 +15,13 @@
                 <img class="logoImage" src="img/logo.png" alt="logoImage">
             </picture>
         </a>
+        <div class="avatar" id="avatar">
+
+        </div>
         <div class="actions">
+            <div class="currentUser" id="currentUser">
+                User1
+            </div>
             <a class="headerLink" href="">Log out</a>
         </div>
     </header>
@@ -39,15 +45,9 @@
                 </input>
             </div>
         </div>
-        <div class="avatar">
-            <img class="avatar_img" src="https://image.flaticon.com/icons/png/512/194/194938.png" alt="img">
-            <div class="nickname">
-                User1
-            </div>
-        </div>
         <div class="filters">
             <input type="text" placeholder="Username filter">
-            <input type="date" id="date"><span>Date filter</span>
+            <input type="text" placeholder="Date filter" onfocus="(this.type='date')" id="date">
             <input type="text" placeholder="Messages filter">
         </div>
     </main>

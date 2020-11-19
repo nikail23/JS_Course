@@ -104,8 +104,7 @@ const chat = (function () {
       messagesBuffer.sort(compareDates);
 
       if (this.user) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].isPersonal && messagesBuffer[i].to !== this.user) {
+        for (let i = 0; i < messagesBuffer.length; i++) {          if (messagesBuffer[i].isPersonal && messagesBuffer[i].to !== this.user && messagesBuffer[i].author !== this.user) {
             messagesBuffer.splice(i, 1);
             i--;
           }
@@ -270,14 +269,31 @@ const chat = (function () {
     }
   }
 
+  class HeaderView {
+    constructor(avatarId, currentUserNameId) {
+      this.avatarId = avatarId;
+      this.currentUserNameId = currentUserNameId;
+    }
+
+    display(avatar, name) {
+      // eslint-disable-next-line no-undef
+      const avatarContainer = document.getElementById(this.avatarId);
+      avatarContainer.innerHTML = avatar;
+      // eslint-disable-next-line no-undef
+      const nameContaner = document.getElementById(this.currentUserNameId);
+      nameContaner.innerHTML = name;
+    }
+  }
+
   return {
     Message,
     FilterConfig,
     MessageList,
-    MessagesView,
-    UserList,
-    ActiveUsersView,
     User,
+    UserList,
+    MessagesView,
+    ActiveUsersView,
+    HeaderView,
   };
 }());
 
@@ -314,9 +330,9 @@ const ChatLogic = (function () {
 
     new chat.Message(
       '3',
-      'GG',
+      '...',
       new Date(),
-      'user3',
+      'User3',
       false,
     ),
   ];
@@ -326,7 +342,7 @@ const ChatLogic = (function () {
   const messagesView = new chat.MessagesView('messages');
 
   function addMessage(text, isPersonal, to) {
-    messageList.add(new chat.Message(undefined, text, undefined, undefined, undefined, isPersonal, to));
+    messageList.add(new chat.Message(undefined, text, undefined, undefined, isPersonal, to));
     this.showMessages();
   }
 
@@ -351,7 +367,7 @@ const ChatLogic = (function () {
       second: 'numeric',
     };
     messageList.getPage(undefined, undefined).forEach((message) => {
-      const infoString = `Author: ${message.author}, ${message.createdAt.toLocaleString('en-US', options)}`;
+      const infoString = `${message.isPersonal ? `Personal message to ${message.to}` : 'Common message'} from ${message.author},<br/> at ${message.createdAt.toLocaleString('en-US', options)}`;
       if (message.author === messageList.user) {
         messagesHTML
         += `<div class="commonSentMessage">
@@ -384,22 +400,35 @@ const ChatLogic = (function () {
   ];
   const userList = new chat.UserList(users, activeUsers);
   const activeUsersView = new chat.ActiveUsersView('usersList');
+  let currentUser = activeUsers[0];
 
   function showActiveUsers() {
     let activeUsersHTML = '';
     userList.activeUsers.forEach((activeUser) => {
-      activeUsersHTML
-      += `<div class="user">
-          <img src="${activeUser.avatar}" alt="">
-          ${activeUser.name}
-      </div>`;
+      if (currentUser.name !== activeUser.name) {
+        activeUsersHTML
+        += `<div class="user">
+            <img src="${activeUser.avatar}" alt="">
+            ${activeUser.name}
+        </div>`;
+      }
     });
     activeUsersView.display(activeUsersHTML);
+  }
+
+  function setCurrentUser(name, avatar) {
+    currentUser = new chat.User(name, avatar);
+    messageList.user = currentUser.name;
+    const headerView = new chat.HeaderView('avatar', 'currentUser');
+    headerView.display(`<img src='${currentUser.avatar}' alt='avatar'> </img>`, currentUser.name);
+    this.showMessages();
+    this.showActiveUsers();
   }
 
   return {
     showMessages,
     showActiveUsers,
+    setCurrentUser,
     addMessage,
     editMessage,
     removeMessage,
@@ -412,11 +441,10 @@ const ChatLogic = (function () {
 
 ChatLogic.showActiveUsers();
 ChatLogic.showMessages();
-ChatLogic.addMessage('Hi!');
-ChatLogic.editMessage('4', 'hi!!!)))');
-ChatLogic.removeMessage('4');
-
-/** todo: Доделать FiltersView, HeaderView, правильно выводить сообщения для автора/адресата, протестировать ChatLogic */
+ChatLogic.setCurrentUser('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png');
+ChatLogic.addMessage('Hi!', true, 'User2');
+ChatLogic.editMessage('4', 'hi!!!)))', true, 'User2');
+// ChatLogic.removeMessage('4');
 
 (function MessagesTests() {
   const readyMessages = [
@@ -449,7 +477,7 @@ ChatLogic.removeMessage('4');
       '3',
       'GG',
       new Date(),
-      'user3',
+      'User3',
       false,
     ),
   ];
