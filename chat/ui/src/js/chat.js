@@ -1,3 +1,7 @@
+//
+// CHAT BASE CLASSES
+//
+/* eslint-disable max-len */
 const chat = (function () {
   class Message {
     constructor(id, text, createdAt, author, isPersonal, to) {
@@ -100,8 +104,7 @@ const chat = (function () {
       messagesBuffer.sort(compareDates);
 
       if (this.user) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].isPersonal && messagesBuffer[i].to !== this.user) {
+        for (let i = 0; i < messagesBuffer.length; i++) {          if (messagesBuffer[i].isPersonal && messagesBuffer[i].to !== this.user && messagesBuffer[i].author !== this.user) {
             messagesBuffer.splice(i, 1);
             i--;
           }
@@ -128,7 +131,7 @@ const chat = (function () {
       || !(typeof (message.author) === 'string')
       || !(typeof (message.text) === 'string')
       || !(message.createdAt instanceof Date)
-      || !(typeof (message.isPersonal) === 'boolean')
+      || (message.isPersonal && !(typeof (message.isPersonal) === 'boolean'))
       || (message.to && !(typeof (message.to) === 'string'))) {
         return false;
       }
@@ -136,6 +139,15 @@ const chat = (function () {
     }
 
     add(message) {
+      if (message.author === undefined) {
+        message._author = this.user;
+      }
+      if (message.id === undefined) {
+        message._id = String(Number(this._messages[this._messages.length - 1].id) + 1);
+      }
+      if (message.createdAt === undefined) {
+        message._createdAt = new Date();
+      }
       if (MessageList.validate(message)) {
         const newMessage = new chat.Message(
           message.id,
@@ -154,9 +166,7 @@ const chat = (function () {
     addAll(messages) {
       const unvalidatedMessages = [];
       messages.forEach((message) => {
-        if (MessageList.validate(message)) {
-          this._messages.push(message);
-        } else {
+        if (!this.add(message)) {
           unvalidatedMessages.push(message);
         }
       });
@@ -189,6 +199,15 @@ const chat = (function () {
         sourceMessage.to = newMessage.to;
         sourceMessage.createdAt = newMessage.createdAt;
       }
+      if (editedMessage.author === undefined) {
+        editedMessage._author = this.user;
+      }
+      if (editedMessage.id === undefined) {
+        editedMessage._id = String(Number(this._messages[this._messages.length - 1].id) + 1);
+      }
+      if (editedMessage.createdAt === undefined) {
+        editedMessage._createdAt = new Date();
+      }
       if (MessageList.validate(editedMessage)) {
         const editableMessage = this.get(id);
         if (editableMessage) {
@@ -212,19 +231,82 @@ const chat = (function () {
     }
   }
 
+  class MessagesView {
+    constructor(containerId) {
+      this.containerId = containerId;
+    }
+
+    display(params) {
+      // eslint-disable-next-line no-undef
+      const container = document.getElementById(this.containerId);
+      container.innerHTML = params;
+    }
+  }
+
+  class User {
+    constructor(name, avatar) {
+      this.name = name;
+      this.avatar = avatar;
+    }
+  }
+
+  class UserList {
+    constructor(users, activeUsers) {
+      this.users = users;
+      this.activeUsers = activeUsers;
+    }
+  }
+
+  class ActiveUsersView {
+    constructor(containerId) {
+      this.containerId = containerId;
+    }
+
+    display(params) {
+      // eslint-disable-next-line no-undef
+      const container = document.getElementById(this.containerId);
+      container.innerHTML = params;
+    }
+  }
+
+  class HeaderView {
+    constructor(avatarId, currentUserNameId) {
+      this.avatarId = avatarId;
+      this.currentUserNameId = currentUserNameId;
+    }
+
+    display(avatar, name) {
+      // eslint-disable-next-line no-undef
+      const avatarContainer = document.getElementById(this.avatarId);
+      avatarContainer.innerHTML = avatar;
+      // eslint-disable-next-line no-undef
+      const nameContaner = document.getElementById(this.currentUserNameId);
+      nameContaner.innerHTML = name;
+    }
+  }
+
   return {
     Message,
     FilterConfig,
     MessageList,
+    User,
+    UserList,
+    MessagesView,
+    ActiveUsersView,
+    HeaderView,
   };
 }());
 
-(function Tests() {
-  const readyMessages = [
+// CHAT LOGIC
+// MVC
+//
+
+const ChatLogic = (function () {
+  const messages = [
     new chat.Message(
       '0',
       'Hello User1!',
-      new Date(2020, 11, 1, 13, 30, 27),
+      new Date(),
       'User2',
       false,
     ),
@@ -232,7 +314,7 @@ const chat = (function () {
     new chat.Message(
       '1',
       'Hello!',
-      new Date(2020, 11, 1, 13, 40, 53),
+      new Date(),
       'User1',
       false,
     ),
@@ -240,7 +322,152 @@ const chat = (function () {
     new chat.Message(
       '2',
       'Hello User2!',
-      new Date(2020, 11, 1, 13, 50, 44),
+      new Date(),
+      'User1',
+      true,
+      'User2',
+    ),
+
+    new chat.Message(
+      '3',
+      '...',
+      new Date(),
+      'User3',
+      false,
+    ),
+  ];
+  const messageList = new chat.MessageList(messages);
+  messageList.user = 'User1';
+
+  const messagesView = new chat.MessagesView('messages');
+
+  function addMessage(text, isPersonal, to) {
+    messageList.add(new chat.Message(undefined, text, undefined, undefined, isPersonal, to));
+    this.showMessages();
+  }
+
+  function editMessage(id, text, isPersonal, to) {
+    messageList.edit(id, new chat.Message(undefined, text, undefined, undefined, isPersonal, to));
+    this.showMessages();
+  }
+
+  function removeMessage(id) {
+    messageList.remove(id);
+    this.showMessages();
+  }
+
+  function showMessages() {
+    let messagesHTML = '';
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+    };
+    messageList.getPage(undefined, undefined).forEach((message) => {
+      const infoString = `${message.isPersonal ? `Personal message to ${message.to}` : 'Common message'} from ${message.author},<br/> at ${message.createdAt.toLocaleString('en-US', options)}`;
+      if (message.author === messageList.user) {
+        messagesHTML
+        += `<div class="commonSentMessage">
+          ${message.text}
+          <img class="imgMes1 delete" src="https://icon-library.com/images/deleted-icon/deleted-icon-18.jpg"/>
+          <img class="imgMes1 edit" src="https://upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/1024px-OOjs_UI_icon_edit-ltr-progressive.svg.png"/>
+        </div>  
+        <div class="info info2">${infoString}</div> `;
+      } else {
+        messagesHTML
+        += `<div class="commonComeMessage">
+          ${message.text}
+        </div>  
+        <div class="info info1">${infoString}</div> `;
+      }
+    });
+    messagesView.display(messagesHTML);
+  }
+
+  const users = [
+    new chat.User('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png'),
+    new chat.User('User2', 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png'),
+    new chat.User('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png'),
+    new chat.User('User4', 'https://cdn.iconscout.com/icon/free/png-256/avatar-372-456324.png'),
+  ];
+  const activeUsers = [
+    new chat.User('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png'),
+    new chat.User('User2', 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png'),
+    new chat.User('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png'),
+  ];
+  const userList = new chat.UserList(users, activeUsers);
+  const activeUsersView = new chat.ActiveUsersView('usersList');
+  let currentUser = activeUsers[0];
+
+  function showActiveUsers() {
+    let activeUsersHTML = '';
+    userList.activeUsers.forEach((activeUser) => {
+      if (currentUser.name !== activeUser.name) {
+        activeUsersHTML
+        += `<div class="user">
+            <img src="${activeUser.avatar}" alt="">
+            ${activeUser.name}
+        </div>`;
+      }
+    });
+    activeUsersView.display(activeUsersHTML);
+  }
+
+  function setCurrentUser(name, avatar) {
+    currentUser = new chat.User(name, avatar);
+    messageList.user = currentUser.name;
+    const headerView = new chat.HeaderView('avatar', 'currentUser');
+    headerView.display(`<img src='${currentUser.avatar}' alt='avatar'> </img>`, currentUser.name);
+    this.showMessages();
+    this.showActiveUsers();
+  }
+
+  return {
+    showMessages,
+    showActiveUsers,
+    setCurrentUser,
+    addMessage,
+    editMessage,
+    removeMessage,
+  };
+}());
+
+//
+// TESTS
+//
+
+ChatLogic.showActiveUsers();
+ChatLogic.showMessages();
+ChatLogic.setCurrentUser('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png');
+ChatLogic.addMessage('Hi!', true, 'User2');
+ChatLogic.editMessage('4', 'hi!!!)))', true, 'User2');
+// ChatLogic.removeMessage('4');
+
+(function MessagesTests() {
+  const readyMessages = [
+    new chat.Message(
+      '0',
+      'Hello User1!',
+      new Date(),
+      'User2',
+      false,
+    ),
+
+    new chat.Message(
+      '1',
+      'Hello!',
+      new Date(),
+      'User1',
+      false,
+    ),
+
+    new chat.Message(
+      '2',
+      'Hello User2!',
+      new Date(),
       'User1',
       true,
       'User2',
@@ -249,8 +476,8 @@ const chat = (function () {
     new chat.Message(
       '3',
       'GG',
-      new Date(2020, 11, 2, 11, 10, 54),
-      'user3',
+      new Date(),
+      'User3',
       false,
     ),
   ];
@@ -316,9 +543,9 @@ const chat = (function () {
     console.log('Test5: Testing edit method. \n');
 
     const messageList = new chat.MessageList(readyMessages);
-    messageList.edit('3', new chat.Message('4', 'Goodbye', new Date(), 'user3', false));
+    messageList.edit('3', new chat.Message('3', 'Goodbye2', new Date(), 'user3', false));
 
-    const resultText = `Status: ${(messageList.get('4').text === 'Goodbye') ? 'accepted!' : 'decline!'}`;
+    const resultText = `Status: ${(messageList.get('3').text === 'Goodbye2') ? 'accepted!' : 'decline!'}`;
     console.log(resultText);
   }
 
