@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="./css/mainStyle.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <title>Чат</title>
 </head>
@@ -22,7 +22,7 @@
             <div class="currentUser" id="currentUser">
                 User1
             </div>
-            <a class="headerLink" href="">Log out</a>
+            <a class="headerLink" href="./login.html">Log out</a>
         </div>
     </header>
     <main>
@@ -33,17 +33,17 @@
             <button class="loadmore">Load old messages <b>&and;</b></button>
             <div id="messages" class="messages">
             </div>
-            <div class="input">
+            <form class="input">
                 <div class="messageInput">
                     <div class="inputText mymessage">
                         Input your message:
                     </div>
                     <input type="text" name="messageTextImput" id="myInput" class="mymessageInput"> 
                 </div>
-                <input type="button" class="sendButton">
+                <input type="submit" id="sendButton" class="sendButton">
                     
                 </input>
-            </div>
+            </form>
         </div>
         <div class="filters">
             <input type="text" placeholder="Username filter">
@@ -59,6 +59,6 @@
             <div class="footerInfoText">Chat: MyChat</div>
         </div>
     </footer>
-    <script src="js/chat.js"> </script>
+    <script src="./js/chat.js"> </script>
 </body>
 </html>

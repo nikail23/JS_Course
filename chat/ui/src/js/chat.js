@@ -1,32 +1,15 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 /* eslint-disable max-len */
 class Message {
   constructor(id, text, createdAt, author, isPersonal, to) {
-    this._id = id;
+    this.id = id;
     this.text = text;
-    this._createdAt = createdAt;
-    this._author = author;
+    this.createdAt = createdAt;
+    this.author = author;
     this.isPersonal = isPersonal;
     this.to = to;
   }
-
-  get id() {
-    return this._id;
-  }
-
-  set id(value) {}
-
-  get createdAt() {
-    return this._createdAt;
-  }
-
-  set createdAt(value) {}
-
-  get author() {
-    return this._author;
-  }
-
-  set author(value) {}
 }
 
 class FilterConfig {
@@ -109,7 +92,17 @@ class MessageList {
       }
     }
 
-    messagesBuffer = messagesBuffer.slice(skip, top + skip);
+    let startIndex = messagesBuffer.length - top - skip;
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
+
+    let endIndex = messagesBuffer.length - skip;
+    if (endIndex < 0) {
+      endIndex = 0;
+    }
+
+    messagesBuffer = messagesBuffer.slice(startIndex, endIndex);
 
     return messagesBuffer;
   }
@@ -138,13 +131,13 @@ class MessageList {
 
   add(message) {
     if (message.author === undefined) {
-      message._author = this.user;
+      message.author = this.user;
     }
     if (message.id === undefined) {
-      message._id = String(Number(this._messages[this._messages.length - 1].id) + 1);
+      message.id = String(Number(this._messages[this._messages.length - 1].id) + 1);
     }
     if (message.createdAt === undefined) {
-      message._createdAt = new Date();
+      message.createdAt = new Date();
     }
     if (MessageList.validate(message)) {
       const newMessage = new Message(
@@ -198,13 +191,13 @@ class MessageList {
       sourceMessage.createdAt = newMessage.createdAt;
     }
     if (editedMessage.author === undefined) {
-      editedMessage._author = this.user;
+      editedMessage.author = this.user;
     }
     if (editedMessage.id === undefined) {
-      editedMessage._id = String(Number(this._messages[this._messages.length - 1].id) + 1);
+      editedMessage.id = String(Number(this._messages[this._messages.length - 1].id) + 1);
     }
     if (editedMessage.createdAt === undefined) {
-      editedMessage._createdAt = new Date();
+      editedMessage.createdAt = new Date();
     }
     if (MessageList.validate(editedMessage)) {
       const editableMessage = this.get(id);
@@ -276,9 +269,81 @@ class User {
 }
 
 class UserList {
-  constructor(users, activeUsers) {
-    this.users = users;
-    this.activeUsers = activeUsers;
+  constructor(users, activeUsers, currentUser) {
+    this._users = users;
+    this._activeUsers = activeUsers;
+    this._currentUser = currentUser;
+  }
+
+  setCurrentUser(name) {
+    const activeUserIndex = this.getActiveUserIndex(name);
+    if (activeUserIndex !== -1) {
+      this._currentUser = this._activeUsers[activeUserIndex];
+    }
+  }
+
+  getCurrentUser() {
+    return this._currentUser;
+  }
+
+  addUser(name, avatar) {
+    if (this.getUserIndex(name) === -1) {
+      this._users.push(new User(name, avatar));
+    }
+  }
+
+  setActiveUser(name) {
+    const userIndex = this.getUserIndex(name);
+    const activeUserIndex = this.getActiveUserIndex(name);
+    if (userIndex !== -1 && activeUserIndex === -1) {
+      this._activeUsers.push(this._users[userIndex]);
+    }
+  }
+
+  setPassiveUser(name) {
+    const activeUserIndex = this.getActiveUserIndex(name);
+    if (activeUserIndex !== -1) {
+      this._activeUsers.splice(activeUserIndex, 1);
+    }
+  }
+
+  deleteUser(name) {
+    const index = this.getUserIndex(name);
+    if (index !== -1) {
+      this._users.splice(index, 1);
+    }
+  }
+
+  getUserIndex(name) {
+    if (!this._users) {
+      return -1;
+    }
+    for (let i = 0; i < this._users.length; i++) {
+      if (name === this._users[i].name) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  getActiveUserIndex(name) {
+    if (!this._activeUsers) {
+      return -1;
+    }
+    for (let i = 0; i < this._activeUsers.length; i++) {
+      if (name === this._activeUsers[i].name) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  getAllUsers() {
+    return this._users;
+  }
+
+  getAllActiveUsers() {
+    return this._activeUsers;
   }
 }
 
@@ -353,8 +418,16 @@ const readyMessages = [
     false,
   ),
 ];
-const messageList = new MessageList(readyMessages);
-messageList.user = 'User1';
+const messageListString = localStorage.getItem('messages');
+let messageList;
+if (messageListString) {
+  messageList = new MessageList(JSON.parse(messageListString));
+  messageList._messages.forEach((message) => {
+    message.createdAt = new Date(message.createdAt);
+  });
+} else {
+  messageList = new MessageList(readyMessages);
+}
 const messagesView = new MessagesView('messages');
 
 const users = [
@@ -368,51 +441,83 @@ const activeUsers = [
   new User('User2', 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png'),
   new User('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png'),
 ];
-const userList = new UserList(users, activeUsers);
+
+const usersListString = localStorage.getItem('users');
+const activeUsersListString = localStorage.getItem('activeUsers');
+const currentUserString = localStorage.getItem('currentUser');
+
+let userList;
+if (usersListString !== 'null' && activeUsersListString !== 'null' && currentUserString !== 'null') {
+  userList = new UserList(JSON.parse(usersListString), JSON.parse(activeUsersListString), JSON.parse(currentUserString));
+} else {
+  userList = new UserList(users, activeUsers, activeUsers[0]);
+}
 const activeUsersView = new ActiveUsersView('usersList');
-let currentUser = activeUsers[0];
 
 function addMessage(text, isPersonal, to) {
   if (messageList.add(new Message(undefined, text, undefined, undefined, isPersonal, to))) {
     this.showMessages();
+    return true;
   }
+  return false;
 }
 
 function editMessage(id, text, isPersonal, to) {
   if (messageList.edit(id, new Message(undefined, text, undefined, undefined, isPersonal, to))) {
     this.showMessages();
+    return true;
   }
+  return false;
 }
 
 function removeMessage(id) {
   if (messageList.remove(id)) {
     this.showMessages();
+    return true;
   }
+  return false;
 }
 
 function showMessages() {
-  messagesView.display(messageList.getPage(), currentUser);
+  messagesView.display(messageList.getPage(), userList.getCurrentUser());
 }
 
 function showActiveUsers() {
-  activeUsersView.display(userList.activeUsers, currentUser);
+  activeUsersView.display(userList.getAllActiveUsers(), userList.getCurrentUser());
 }
 
 function setCurrentUser(name, avatar) {
-  currentUser = new User(name, avatar);
-  messageList.user = currentUser.name;
+  userList.addUser(name, avatar);
+  userList.setActiveUser(name);
+  userList.setCurrentUser(name);
+  messageList.user = name;
+
   const headerView = new HeaderView('avatar', 'currentUser');
-  headerView.display(currentUser.avatar, currentUser.name);
+  headerView.display(userList.getCurrentUser().avatar, userList.getCurrentUser().name);
   this.showMessages();
   this.showActiveUsers();
 }
 
-// TESTS
+// CONTROLLER
 
 showActiveUsers();
 showMessages();
 setCurrentUser('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png');
-// setCurrentUser('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png');
-addMessage('Hi!', true, 'User2');
-editMessage('4', 'hi!!!)))', true, 'User2');
-// removeMessage('4');
+
+const messageInput = document.getElementById('sendButton');
+messageInput.addEventListener('click', (event) => {
+  event.preventDefault();
+  const textInput = document.getElementById('myInput');
+  const messageText = textInput.value;
+  if (messageText.length === 0) {
+    return;
+  }
+  if (addMessage(messageText, false)) {
+    textInput.value = '';
+  }
+});
+
+localStorage.setItem('users', JSON.stringify(userList.getAllUsers()));
+localStorage.setItem('activeUsers', JSON.stringify(userList.getAllActiveUsers()));
+localStorage.setItem('messages', JSON.stringify(messageList._messages));
+localStorage.setItem('currentUser', JSON.stringify(userList.getCurrentUser()));
