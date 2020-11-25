@@ -48,8 +48,15 @@ main {
     position: relative;
 }
 
+.commonComeMessage input:disabled, .commonSentMessage input:disabled {
+    color: #000000;
+    border: 0;
+    background: 0;
+}
+
 .input {
     margin-top: 1rem;
+    border: 0;
     border-radius: 5px;
     height: 4rem;
     grid-row: 1/7;
@@ -118,8 +125,15 @@ button:focus {
 }
 
 .filters {
-    grid-row: 4/6;
+    padding-top: 3em;
+    grid-row: 1/5;
     grid-column: 3/4;
+}
+
+.filters div {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
 }
 
 .user {
@@ -151,7 +165,7 @@ button:focus {
     display: block;
     background-color: #cdfffd;
     border: none;
-    font-size: 20px;
+    font-size: 14px;
     width: 15em;
     margin-bottom: 0.5em;
     margin-left: 2em;
@@ -229,4 +243,17 @@ button:focus {
 
 .commonSentMessage:hover .imgMes1 {
     visibility: visible;
+}
+
+.filters input[type="submit"][class="messageButton"] {
+    display: block;
+    width: 7rem;
+    height: 2rem;
+    background-color: var(--nonactive-button-color);
+    margin: auto;
+    cursor: pointer;
+}
+
+.filters input[type="submit"][class="messageButton"]:hover {
+    background-color: var(--active-button-color);
 }
