@@ -1,0 +1,9 @@
+.hiddenListNode {
+    display: none;
+    cursor: pointer;
+}
+
+.listNode {
+    display: block;
+    cursor: pointer;
+}

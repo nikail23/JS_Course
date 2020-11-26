@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="./css/mainStyle.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <title>Чат</title>
 </head>
@@ -22,7 +22,7 @@
             <div class="currentUser" id="currentUser">
                 User1
             </div>
-            <a class="headerLink" href="">Log out</a>
+            <a class="headerLink" href="./login.html">Log out</a>
         </div>
     </header>
     <main>
@@ -30,25 +30,30 @@
         </div>
         </div>
         <div class="chat">
-            <button class="loadmore">Load old messages <b>&and;</b></button>
+            <button class="loadmore" id="loadmore">Load old messages <b>&and;</b></button>
             <div id="messages" class="messages">
             </div>
-            <div class="input">
+            <form class="input">
                 <div class="messageInput">
-                    <div class="inputText mymessage">
-                        Input your message:
+                    <div class="inputText mymessage" id="mymessage">
+                        
                     </div>
                     <input type="text" name="messageTextImput" id="myInput" class="mymessageInput"> 
                 </div>
-                <input type="button" class="sendButton">
+                <input type="submit" id="sendButton" class="sendButton">
                     
                 </input>
-            </div>
+            </form>
         </div>
-        <div class="filters">
+        <div id="filters" class="filters">
             <input type="text" placeholder="Username filter">
-            <input type="text" placeholder="Date filter" onfocus="(this.type='date')" id="date">
+            <input type="text" placeholder="Date from" onfocus="(this.type='date')" id="date">
+            <input type="text" placeholder="Date to" onfocus="(this.type='date')" id="date">
             <input type="text" placeholder="Messages filter">
+            <div>
+                <input type="submit" id="filterSendButton" class="messageButton" value="Apply filters">
+                <input type="submit" id="filterCancelButton" class="messageButton" value="Cancel filters">
+            </div>
         </div>
     </main>
     <footer>
@@ -59,6 +64,6 @@
             <div class="footerInfoText">Chat: MyChat</div>
         </div>
     </footer>
-    <script src="js/chat.js"> </script>
+    <script src="./js/chat.js"> </script>
 </body>
 </html>
