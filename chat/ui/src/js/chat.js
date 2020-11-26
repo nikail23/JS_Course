@@ -222,9 +222,6 @@ class MessageList {
     if (editedMessage.id === undefined) {
       editedMessage.id = String(Number(this._messages[this._messages.length - 1].id) + 1);
     }
-    if (editedMessage.createdAt === undefined) {
-      editedMessage.createdAt = new Date();
-    }
     if (MessageList.validate(editedMessage)) {
       const editableMessage = this.get(id);
       if (editableMessage) {
