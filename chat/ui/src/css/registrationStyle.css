@@ -38,7 +38,7 @@ input[type="password"] {
     padding-left: 1rem;
 }
 
-input[type="submit"] {
+input[type="button"] {
     display: block;
     width: 10rem;
     height: 2rem;
@@ -47,6 +47,6 @@ input[type="submit"] {
     cursor: pointer;
 }
 
-input[type="submit"]:hover {
+input[type="button"]:hover {
     background-color: var(--active-button-color);
 }

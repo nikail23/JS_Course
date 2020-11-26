@@ -45,14 +45,14 @@
                 </input>
             </form>
         </div>
-        <div class="filters">
+        <div id="filters" class="filters">
             <input type="text" placeholder="Username filter">
             <input type="text" placeholder="Date from" onfocus="(this.type='date')" id="date">
             <input type="text" placeholder="Date to" onfocus="(this.type='date')" id="date">
             <input type="text" placeholder="Messages filter">
             <div>
-                <input type="submit" class="messageButton" value="Apply filters">
-                <input type="submit" class="messageButton" value="Cancel filters">
+                <input type="submit" id="filterSendButton" class="messageButton" value="Apply filters">
+                <input type="submit" id="filterCancelButton" class="messageButton" value="Cancel filters">
             </div>
         </div>
     </main>

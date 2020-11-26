@@ -41,6 +41,9 @@ class MessageList {
 
   _restore() {
     this._messages = JSON.parse(localStorage.getItem('messages'));
+    this._messages.forEach((message) => {
+      message.createdAt = new Date(message.createdAt);
+    });
   }
 
   getMessagesLength() {
@@ -255,16 +258,9 @@ class MessagesView {
     // eslint-disable-next-line no-undef
     const container = document.getElementById(this.containerId);
     let messagesHTML = '';
-    const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
-    };
     messages.forEach((message) => {
-      const infoString = `${message.isPersonal ? `Personal message to ${message.to}` : 'Common message'} from ${message.author},<br/> at ${message.createdAt.toLocaleString('en-US', options)}`;
+      const formatDate = `${(`0${message.createdAt.getDate()}`).slice(-2)}/${(`0${message.createdAt.getMonth() + 1}`).slice(-2)}/${message.createdAt.getFullYear()} ${(`0${message.createdAt.getHours()}`).slice(-2)}:${(`0${message.createdAt.getMinutes()}`).slice(-2)}:${(`0${message.createdAt.getSeconds()}`).slice(-2)}`;
+      const infoString = `${message.isPersonal ? `Personal message to ${message.to}` : 'Common message'} from ${message.author},<br/> at ${formatDate}`;
       if (message.author === currentUser.name) {
         messagesHTML
           += `<div class="commonSentMessage" id="${message.id}">
@@ -435,6 +431,36 @@ class HelpBoxView {
   }
 }
 
+class FiltersView {
+  constructor(filtersBoxId) {
+    this.filtersBoxId = filtersBoxId;
+  }
+
+  display(filterConfig) {
+    const filtersBox = document.getElementById(this.filtersBoxId);
+    const authorFilterBox = filtersBox.children[0];
+    const dateFromFilterBox = filtersBox.children[1];
+    const dateToFilterBox = filtersBox.children[2];
+    const textFilterBox = filtersBox.children[3];
+
+    if (filterConfig.author) {
+      authorFilterBox.value = filterConfig.author;
+    }
+
+    if (filterConfig.dateFrom) {
+      dateFromFilterBox.value = filterConfig.dateFrom;
+    }
+
+    if (filterConfig.dateTo) {
+      dateToFilterBox.value = filterConfig.dateTo;
+    }
+
+    if (filterConfig.text) {
+      textFilterBox.value = filterConfig.text;
+    }
+  }
+}
+
 function checkLocalStorage() {
   const readyUsers = [
     new User('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png'),
@@ -509,6 +535,7 @@ const userList = new UserList();
 const activeUsersView = new ActiveUsersView('usersList');
 
 const helpBoxView = new HelpBoxView('mymessage');
+const filtersView = new FiltersView('filters');
 
 function addMessage(text, isPersonal, to) {
   if (messageList.add(new Message(undefined, text, undefined, undefined, isPersonal, to))) {
@@ -529,6 +556,10 @@ function removeMessage(id) {
 }
 
 function showMessages(skip, top, filter) {
+  if (filter) {
+    // eslint-disable-next-line no-use-before-define
+    currentFilter = filter;
+  }
   messagesView.display(messageList.getPage(skip, top, filter), userList.getCurrentUser());
 }
 
@@ -552,17 +583,31 @@ function showHelpBox(to) {
   helpBoxView.display(to);
 }
 
+function showFilters(filterConfig) {
+  filtersView.display(filterConfig);
+}
+
+function loadCurrentUser() {
+  const currentUserStorageText = localStorage.getItem('currentUser');
+  if (currentUserStorageText) {
+    const currentUser = JSON.parse(currentUserStorageText);
+    setCurrentUser(currentUser.name, currentUser.avatar);
+  } else {
+    setCurrentUser(activeUsers[0].name, activeUsers[0].avatar);
+  }
+}
+
 // CONTROLLER
 
 let currentTop = 10;
-let currentSkip = 0;
+const currentSkip = 0;
 let currentFilter = null;
 let currentSelectedUser = 'All';
 
 showHelpBox(currentSelectedUser);
 showActiveUsers();
 showMessages(currentSkip, currentTop, currentFilter);
-setCurrentUser('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png');
+loadCurrentUser();
 
 function addSelectUserEvent() {
   const activeUsers = document.getElementsByClassName('user');
@@ -595,6 +640,7 @@ function addDeleteEventToAllMessages() {
     button.addEventListener('click', (event) => {
       const messageContainer = button.parentNode;
       removeMessage(messageContainer.id);
+      // eslint-disable-next-line no-use-before-define
       addEditEventToAllMessages();
       addDeleteEventToAllMessages();
     });
@@ -640,6 +686,55 @@ function addEditEventToAllMessages() {
   });
 }
 
+function addFilterEvent() {
+  const filterSendButton = document.getElementById('filterSendButton');
+  const filterCancelButton = document.getElementById('filterCancelButton');
+
+  filterSendButton.addEventListener('click', (event) => {
+    const filtersBox = document.getElementById('filters');
+    const authorFilterBox = filtersBox.children[0];
+    const dateFromFilterBox = filtersBox.children[1];
+    const dateToFilterBox = filtersBox.children[2];
+    const textFilterBox = filtersBox.children[3];
+
+    const authorFilter = authorFilterBox.value;
+    const dateFromFilterText = dateFromFilterBox.value;
+    const dateToFilterText = dateToFilterBox.value;
+    let dateFromFilter;
+    let dateToFilter;
+
+    if (dateFromFilterText !== '') {
+      dateFromFilter = new Date(dateFromFilterText);
+      dateFromFilter.setHours(0);
+      dateFromFilter.setMinutes(0);
+      dateFromFilter.setSeconds(0);
+    }
+
+    if (dateToFilterText !== '') {
+      dateToFilter = new Date(dateToFilterText);
+      dateToFilter.setHours(23);
+      dateToFilter.setMinutes(59);
+      dateToFilter.setSeconds(59);
+    }
+
+    const textFilter = textFilterBox.value;
+
+    const filter = new FilterConfig(authorFilter, dateFromFilter, dateToFilter, textFilter);
+    showMessages(currentSkip, currentTop, filter);
+  });
+
+  filterCancelButton.addEventListener('click', (event) => {
+    const filtersBox = document.getElementById('filters');
+    filtersBox.children[0].value = null;
+    filtersBox.children[1].value = null;
+    filtersBox.children[2].value = null;
+    filtersBox.children[3].value = null;
+
+    currentFilter = null;
+    showMessages(currentSkip, currentTop, currentFilter);
+  });
+}
+
 function addSendButtonEvent() {
   const messageInput = document.getElementById('sendButton');
   messageInput.addEventListener('click', (event) => {
@@ -663,6 +758,7 @@ function addSendButtonEvent() {
   });
 }
 
+addFilterEvent();
 addSelectUserEvent();
 addLoadOtherMessagesButtonEvent();
 addSendButtonEvent();
