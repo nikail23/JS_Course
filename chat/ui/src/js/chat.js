@@ -212,7 +212,9 @@ class MessageList {
       if (newMessage.to) {
         sourceMessage.to = newMessage.to;
       }
-      sourceMessage.createdAt = newMessage.createdAt;
+      if (newMessage.createdAt) {
+        sourceMessage.createdAt = newMessage.createdAt;
+      }
     }
     if (editedMessage.author === undefined) {
       editedMessage.author = this.user;
@@ -526,100 +528,104 @@ function checkLocalStorage() {
   }
 }
 
-checkLocalStorage();
-
-const messageList = new MessageList();
-const messagesView = new MessagesView('messages');
-
-const userList = new UserList();
-const activeUsersView = new ActiveUsersView('usersList');
-
-const helpBoxView = new HelpBoxView('mymessage');
-const filtersView = new FiltersView('filters');
-
-function addMessage(text, isPersonal, to) {
-  if (messageList.add(new Message(undefined, text, undefined, undefined, isPersonal, to))) {
-    this.showMessages();
-  }
-}
-
-function editMessage(id, text, isPersonal, to) {
-  if (messageList.edit(id, new Message(undefined, text, undefined, undefined, isPersonal, to))) {
-    this.showMessages();
-  }
-}
-
-function removeMessage(id) {
-  if (messageList.remove(id)) {
-    this.showMessages();
-  }
-}
-
-function showMessages(skip, top, filter) {
-  if (filter) {
-    // eslint-disable-next-line no-use-before-define
-    currentFilter = filter;
-  }
-  messagesView.display(messageList.getPage(skip, top, filter), userList.getCurrentUser());
-}
-
-function showActiveUsers() {
-  activeUsersView.display(userList.getAllActiveUsers(), userList.getCurrentUser());
-}
-
-function setCurrentUser(name, avatar) {
-  userList.addUser(name, avatar);
-  userList.setActiveUser(name);
-  userList.setCurrentUser(name);
-  messageList.user = name;
-
-  const headerView = new HeaderView('avatar', 'currentUser');
-  headerView.display(userList.getCurrentUser().avatar, userList.getCurrentUser().name);
-  this.showMessages();
-  this.showActiveUsers();
-}
-
-function showHelpBox(to) {
-  helpBoxView.display(to);
-}
-
-function showFilters(filterConfig) {
-  filtersView.display(filterConfig);
-}
-
-function loadCurrentUser() {
-  const currentUserStorageText = localStorage.getItem('currentUser');
-  if (currentUserStorageText) {
-    const currentUser = JSON.parse(currentUserStorageText);
-    setCurrentUser(currentUser.name, currentUser.avatar);
-  } else {
-    setCurrentUser(activeUsers[0].name, activeUsers[0].avatar);
-  }
-}
-
 // CONTROLLER
 
-let currentTop = 10;
-const currentSkip = 0;
-let currentFilter = null;
-let currentSelectedUser = 'All';
+class ChatController {
+  constructor() {
+    this.currentTop = 10;
+    this.currentSkip = 0;
+    this.currentFilter = null;
+    this.currentSelectedUser = 'All';
 
-showHelpBox(currentSelectedUser);
-showActiveUsers();
-showMessages(currentSkip, currentTop, currentFilter);
-loadCurrentUser();
+    this.messageList = new MessageList();
+    this.messagesView = new MessagesView('messages');
+    this.userList = new UserList();
+    this.activeUsersView = new ActiveUsersView('usersList');
+    this.helpBoxView = new HelpBoxView('mymessage');
+    this.filtersView = new FiltersView('filters');
+    this.headerView = new HeaderView('avatar', 'currentUser');
+
+    checkLocalStorage();
+
+    this.showHelpBox(this.currentSelectedUser);
+    this.showActiveUsers();
+    this.showMessages(this.currentSkip, this.currentTop, this.currentFilter);
+    this.loadCurrentUser();
+  }
+
+  addMessage(text, isPersonal, to) {
+    if (this.messageList.add(new Message(undefined, text, undefined, undefined, isPersonal, to))) {
+      this.showMessages();
+    }
+  }
+
+  editMessage(id, text, isPersonal, to) {
+    if (this.messageList.edit(id, new Message(undefined, text, undefined, undefined, isPersonal, to))) {
+      this.showMessages();
+    }
+  }
+
+  removeMessage(id) {
+    if (this.messageList.remove(id)) {
+      this.showMessages();
+    }
+  }
+
+  showMessages(skip, top, filter) {
+    if (filter) {
+      // eslint-disable-next-line no-use-before-define
+      this.currentFilter = filter;
+    }
+    this.messagesView.display(this.messageList.getPage(skip, top, filter), this.userList.getCurrentUser());
+  }
+
+  showActiveUsers() {
+    this.activeUsersView.display(this.userList.getAllActiveUsers(), this.userList.getCurrentUser());
+  }
+
+  setCurrentUser(name, avatar) {
+    this.userList.addUser(name, avatar);
+    this.userList.setActiveUser(name);
+    this.userList.setCurrentUser(name);
+    this.messageList.user = name;
+
+    this.headerView.display(this.userList.getCurrentUser().avatar, this.userList.getCurrentUser().name);
+    this.showMessages();
+    this.showActiveUsers();
+  }
+
+  showHelpBox(to) {
+    this.helpBoxView.display(to);
+  }
+
+  showFilters(filterConfig) {
+    this.filtersView.display(filterConfig);
+  }
+
+  loadCurrentUser() {
+    const currentUserStorageText = localStorage.getItem('currentUser');
+    if (currentUserStorageText) {
+      const currentUser = JSON.parse(currentUserStorageText);
+      this.setCurrentUser(currentUser.name, currentUser.avatar);
+    } else {
+      this.setCurrentUser(activeUsers[0].name, activeUsers[0].avatar);
+    }
+  }
+}
+
+const chatController = new ChatController();
 
 function addSelectUserEvent() {
   const activeUsers = document.getElementsByClassName('user');
   Array.prototype.slice.call(activeUsers).forEach((user) => {
     user.addEventListener('click', (event) => {
-      const oldSelectedUser = currentSelectedUser;
-      currentSelectedUser = user.children[1].innerText;
-      if (oldSelectedUser === currentSelectedUser) {
-        currentSelectedUser = 'All';
+      const oldSelectedUser = chatController.currentSelectedUser;
+      chatController.currentSelectedUser = user.children[1].innerText;
+      if (oldSelectedUser === chatController.currentSelectedUser) {
+        chatController.currentSelectedUser = 'All';
       }
       const helpContainer = document.getElementById('mymessage');
-      showHelpBox(currentSelectedUser);
+      chatController.showHelpBox(chatController.currentSelectedUser);
     });
   });
 }
@@ -627,10 +633,10 @@ function addSelectUserEvent() {
 function addLoadOtherMessagesButtonEvent() {
   const loadOtherMessagesButton = document.getElementById('loadmore');
   loadOtherMessagesButton.addEventListener('click', (event) => {
-    if (currentTop < messageList.getMessagesLength()) {
-      currentTop += 10;
+    if (chatController.currentTop < chatController.messageList.getMessagesLength()) {
+      chatController.currentTop += 10;
     }
-    showMessages(currentSkip, currentTop, currentFilter);
+    chatController.showMessages(chatController.currentSkip, chatController.currentTop, chatController.currentFilter);
   });
 }
 
@@ -639,7 +645,7 @@ function addDeleteEventToAllMessages() {
   Array.prototype.slice.call(deleteMessageButtons).forEach((button) => {
     button.addEventListener('click', (event) => {
       const messageContainer = button.parentNode;
-      removeMessage(messageContainer.id);
+      chatController.removeMessage(messageContainer.id);
       // eslint-disable-next-line no-use-before-define
       addEditEventToAllMessages();
       addDeleteEventToAllMessages();
@@ -665,7 +671,7 @@ function addEditEventToAllMessages() {
       messageInput.addEventListener('keydown', (event) => {
         switch (event.keyCode) {
           case 13:
-            editMessage(messageContainer.id, messageInput.value);
+            chatController.editMessage(messageContainer.id, messageInput.value);
             addDeleteEventToAllMessages();
             addEditEventToAllMessages();
             messageContainer.appendChild(deleteButton);
@@ -720,7 +726,7 @@ function addFilterEvent() {
     const textFilter = textFilterBox.value;
 
     const filter = new FilterConfig(authorFilter, dateFromFilter, dateToFilter, textFilter);
-    showMessages(currentSkip, currentTop, filter);
+    chatController.showMessages(this.currentSkip, this.currentTop, filter);
   });
 
   filterCancelButton.addEventListener('click', (event) => {
@@ -730,8 +736,8 @@ function addFilterEvent() {
     filtersBox.children[2].value = null;
     filtersBox.children[3].value = null;
 
-    currentFilter = null;
-    showMessages(currentSkip, currentTop, currentFilter);
+    chatController.currentFilter = null;
+    chatController.showMessages(chatController.currentSkip, chatController.currentTop, chatController.currentFilter);
   });
 }
 
@@ -744,10 +750,10 @@ function addSendButtonEvent() {
     if (messageText.length === 0) {
       return;
     }
-    if (currentSelectedUser !== 'All') {
-      addMessage(messageText, true, currentSelectedUser);
+    if (chatController.currentSelectedUser !== 'All') {
+      chatController.addMessage(messageText, true, currentSelectedUser);
     } else {
-      addMessage(messageText, false);
+      chatController.addMessage(messageText, false);
     }
 
     addEditEventToAllMessages();
