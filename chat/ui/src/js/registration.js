@@ -1,23 +1,39 @@
 /* eslint-disable no-undef */
-class User {
-  constructor(name, avatar) {
-    this.name = name;
-    this.avatar = avatar;
+class ChatApiService {
+  constructor(address) {
+    this.address = address;
+  }
+
+  sendRegisterRequest(login, password) {
+    const formdata = new FormData();
+    formdata.append('name', login);
+    formdata.append('pass', password);
+
+    const requestOptions = {
+      method: 'POST',
+      body: formdata,
+      redirect: 'follow',
+    };
+
+    const requestAddress = `${this.address}/auth/register`;
+    console.log(requestAddress);
+
+    fetch(requestAddress, requestOptions)
+      .then((response) => this._handleRegisterResponse(response))
+      .then((result) => console.log(result))
+      .catch((error) => console.log('error', error));
+  }
+
+  _handleRegisterResponse(response) {
+    if (response.status === 200) {
+      document.location.href = '../login.html';
+    } else {
+      // document.location.href = '../error.html'; ПЕРЕХОД НА СТРАНИЦУ ОШИБКИ С КОДОМ
+    }
   }
 }
 
-let users = [];
-
-function loadUsers() {
-  const usersStorageString = localStorage.getItem('users');
-  if (usersStorageString) {
-    users = JSON.parse(usersStorageString);
-  }
-}
-
-function saveUsers() {
-  localStorage.setItem('users', JSON.stringify(users));
-}
+const chatApi = new ChatApiService('https://jslabdb.datamola.com');
 
 const registerButton = document.getElementById('register');
 registerButton.addEventListener('click', () => {
@@ -39,22 +55,6 @@ registerButton.addEventListener('click', () => {
   if (login.match(checkLogin) === null) {
     loginInput.value = '';
     loginInput.placeholder = 'Login must consist of a-z, A-Z, 0-9.';
-    return;
-  }
-
-  function checkUserInUsers(userLogin) {
-    let isFind = false;
-    users.forEach((user) => {
-      if (user.name === userLogin) {
-        isFind = true;
-      }
-    });
-    return isFind;
-  }
-
-  if (checkUserInUsers(login)) {
-    loginInput.value = '';
-    loginInput.placeholder = 'User with same login detected.';
     return;
   }
 
@@ -83,10 +83,5 @@ registerButton.addEventListener('click', () => {
     return;
   }
 
-  const newUser = new User(login, 'https://image.flaticon.com/icons/png/512/194/194938.png');
-  users.push(newUser);
-  saveUsers();
-  document.location.href = '../login.html';
+  chatApi.sendRegisterRequest(login, password);
 });
-
-loadUsers();

@@ -1,5 +1,6 @@
 /* eslint-disable no-else-return */
 /* eslint-disable no-undef */
+
 class User {
   constructor(name, avatar) {
     this.name = name;
@@ -7,70 +8,48 @@ class User {
   }
 }
 
-let users = [];
-let activeUsers = [];
-
-function loadUsers() {
-  const usersStorageString = localStorage.getItem('users');
-  if (usersStorageString) {
-    users = JSON.parse(usersStorageString);
+class ChatApiService {
+  constructor(address) {
+    this.address = address;
   }
-}
 
-function loadActiveUsers() {
-  const activeUsersStorageString = localStorage.getItem('activeUsers');
-  if (activeUsersStorageString) {
-    activeUsers = JSON.parse(activeUsersStorageString);
+  sendLoginRequest(login, password) {
+    const formdata = new FormData();
+    formdata.append('name', login);
+    formdata.append('pass', password);
+
+    const requestOptions = {
+      method: 'POST',
+      body: formdata,
+      redirect: 'follow',
+    };
+
+    fetch(`${this.address}/auth/login`, requestOptions)
+      .then((response) => response.text())
+      .then((result) => this.handleLoginResponse(result, login))
+      .catch((error) => console.log('error', error));
   }
-}
 
-function saveActiveAndCurrentUsers(currentUser) {
-  localStorage.setItem('activeUsers', JSON.stringify(activeUsers));
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-}
-
-function checkUserInActiveUsers(userLogin) {
-  let isFind = false;
-  activeUsers.forEach((user) => {
-    if (user.name === userLogin) {
-      isFind = true;
+  handleLoginResponse(result, login) {
+    if (result.indexOf('token') !== -1) {
+      sessionStorage.setItem('token', result.substring(10, result.length - 2));
+      sessionStorage.setItem('currentUser', JSON.stringify(new User(login, 'https://image.flaticon.com/icons/png/512/194/194938.png')));
+      document.location.href = '../main.html';
+    } else {
+      // ошибка, выводим пользователю на экран
     }
-  });
-  return isFind;
+  }
 }
+
+const chatApi = new ChatApiService('https://jslabdb.datamola.com');
 
 const loginButton = document.getElementById('loginButton');
 loginButton.addEventListener('click', () => {
   const loginInput = document.getElementById('login');
-  // const passwordInput = document.getElementById('password');
+  const passwordInput = document.getElementById('password');
 
   const login = loginInput.value;
-  // const password = passwordInput.value;
+  const password = passwordInput.value;
 
-  function getUser(userLogin) {
-    let findUser = null;
-    users.forEach((user) => {
-      if (user.name === userLogin) {
-        findUser = user;
-      }
-    });
-    return findUser;
-  }
-
-  const logInUser = getUser(login);
-  if (logInUser === null) {
-    loginInput.value = '';
-    loginInput.placeholder = 'User with same login not founded.';
-    return;
-  }
-
-  if (!checkUserInActiveUsers(logInUser.name)) {
-    activeUsers.push(logInUser);
-  }
-  saveActiveAndCurrentUsers(logInUser);
-
-  document.location.href = '../main.html';
+  chatApi.sendLoginRequest(login, password);
 });
-
-loadUsers();
-loadActiveUsers();

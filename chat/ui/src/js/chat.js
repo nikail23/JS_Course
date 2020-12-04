@@ -2,6 +2,213 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 /* eslint-disable max-len */
+class ChatApiService {
+  constructor(address) {
+    this._address = address;
+    this._token = sessionStorage.getItem('token');
+
+    this._messages = [];
+
+    this._users = [];
+    this._activeUsers = [];
+    this._currentUser = null;
+  }
+
+  setCurrentUser(user) {
+    this._currentUser = user;
+  }
+
+  getCurrentUser() {
+    return this._currentUser;
+  }
+
+  async getMessages(skip, top, filter) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', this._token);
+
+    const requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    let request = `${this._address}/messages?`;
+    let isFirst = false;
+
+    if (skip !== undefined) {
+      request += `skip=${skip}`;
+      isFirst = true;
+    }
+
+    if (top !== undefined) {
+      if (isFirst) {
+        request += `&top=${top}`;
+      } else {
+        isFirst = true;
+        request += `top=${top}`;
+      }
+    }
+
+    if (filter !== undefined && filter !== null) {
+      if (filter.dateTo !== undefined) {
+        if (isFirst) {
+          request += `&dateTo=${filter.dateTo}`;
+        } else {
+          isFirst = true;
+          request += `dateTo=${filter.dateTo}`;
+        }
+      }
+      if (filter.dateFrom !== undefined) {
+        if (isFirst) {
+          request += `&dateFrom=${filter.dateFrom}`;
+        } else {
+          isFirst = true;
+          request += `dateFrom=${filter.dateFrom}`;
+        }
+      }
+      if (filter.author !== undefined) {
+        if (isFirst) {
+          request += `&author=${filter.author}`;
+        } else {
+          isFirst = true;
+          request += `author=${filter.author}`;
+        }
+      }
+      if (filter.text !== undefined) {
+        if (isFirst) {
+          request += `&text=${filter.text}`;
+        } else {
+          isFirst = true;
+          request += `text=${filter.text}`;
+        }
+      }
+    }
+
+    const response = await fetch(request, requestOptions);
+    const messages = await response.json();
+
+    return messages;
+  }
+
+  async addMessage(text, isPersonal, to) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', this._token);
+
+    const raw = `{\n    "text": "${text}",\n    "isPersonal": ${isPersonal},\n    "to": "${to}"\n}`;
+
+    const requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow',
+    };
+
+    let messageId = null;
+
+    fetch(`${this._address}/message`, requestOptions)
+      .then((response) => response.text())
+      .then((result) => {
+        if (result.indexOf('id') !== -1) {
+          messageId = result.substring(7, result.length - 1);
+        }
+      })
+      .catch((error) => console.log('error', error));
+
+    return messageId;
+  }
+
+  editMessage(id, text, isPersonal, to) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer some.token');
+
+    const raw = `{\n    "text": "${text}",\n    "isPersonal": ${isPersonal},\n    "to": "${to}"\n}`;
+
+    const requestOptions = {
+      method: 'PUT',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow',
+    };
+
+    let status = null;
+
+    fetch(`${address}/message/${id}`, requestOptions)
+      .then((response) => {
+        if (response.status === 200) {
+          console.log('Succesfully edit!');
+          status = true;
+        } else {
+          status = false;
+          document.location.href = `../error.html?errorCode=${response.status}&errorDescription=${response.statusText}`;
+        }
+      })
+      .then((result) => console.log(result))
+      .catch((error) => console.log('error', error));
+
+    return status;
+  }
+
+  deleteMesssage(id) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', this._token);
+
+    const requestOptions = {
+      method: 'DELETE',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    let status = null;
+
+    fetch(`${address}/message/${id}`, requestOptions)
+      .then((response) => {
+        if (response.status === 200) {
+          status = true;
+          console.log('Successfully delete!');
+        } else {
+          status = false;
+          document.location.href = `../error.html?errorCode=${response.status}&errorDescription=${response.statusText}`;
+        }
+      })
+      .then((result) => console.log(result))
+      .catch((error) => console.log('error', error));
+
+    return status;
+  }
+
+  logOut() {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', this._token);
+
+    const requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    fetch('/logout', requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.log('error', error));
+  }
+
+  async getUsers() {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', this._token);
+
+    const requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    const response = await fetch(`${this._address}/users`, requestOptions);
+    const users = await response.json();
+
+    return users;
+  }
+}
+
 class Message {
   constructor(id, text, createdAt, author, isPersonal, to) {
     this.id = id;
@@ -19,232 +226,6 @@ class FilterConfig {
     this.dateFrom = dateFrom;
     this.dateTo = dateTo;
     this.text = text;
-  }
-}
-
-class MessageList {
-  constructor() {
-    this._restore();
-  }
-
-  get user() {
-    return this._user;
-  }
-
-  set user(value) {
-    this._user = value;
-  }
-
-  _save() {
-    localStorage.setItem('messages', JSON.stringify(this._messages));
-  }
-
-  _restore() {
-    this._messages = JSON.parse(localStorage.getItem('messages'));
-    this._messages.forEach((message) => {
-      message.createdAt = new Date(message.createdAt);
-    });
-  }
-
-  getMessagesLength() {
-    return this._messages.length;
-  }
-
-  getPage(skip, top, filterConfig) {
-    let messagesBuffer = this._messages.slice();
-
-    if (!skip) skip = 0;
-    if (!top) top = 10;
-
-    if (filterConfig) {
-      if (filterConfig.author) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].author.indexOf(filterConfig.author) === -1) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-
-      if (filterConfig.dateFrom) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].createdAt < filterConfig.dateFrom) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-
-      if (filterConfig.dateTo) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].createdAt > filterConfig.dateTo) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-
-      if (filterConfig.text) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].text.indexOf(filterConfig.text) === -1) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-    }
-
-    function compareDates(message1, message2) {
-      return message1.createdAt - message2.createdAt;
-    }
-    messagesBuffer.sort(compareDates);
-
-    if (this.user) {
-      for (let i = 0; i < messagesBuffer.length; i++) {
-        if (messagesBuffer[i].isPersonal && messagesBuffer[i].to !== this.user && messagesBuffer[i].author !== this.user) {
-          messagesBuffer.splice(i, 1);
-          i--;
-        }
-      }
-    }
-
-    let startIndex = messagesBuffer.length - top - skip;
-    if (startIndex < 0) {
-      startIndex = 0;
-    }
-
-    let endIndex = messagesBuffer.length - skip;
-    if (endIndex < 0) {
-      endIndex = 0;
-    }
-
-    messagesBuffer = messagesBuffer.slice(startIndex, endIndex);
-
-    return messagesBuffer;
-  }
-
-  get(id) {
-    function checkId(element) {
-      if (element.id === id) {
-        return true;
-      }
-      return false;
-    }
-    return this._messages.find(checkId);
-  }
-
-  static validate(message) {
-    if (!(typeof (message.id) === 'string')
-      || !(typeof (message.author) === 'string')
-      || !(typeof (message.text) === 'string')
-      || !(message.createdAt instanceof Date)
-      || (message.isPersonal && !(typeof (message.isPersonal) === 'boolean'))
-      || (message.to && !(typeof (message.to) === 'string'))) {
-      return false;
-    }
-    return true;
-  }
-
-  add(message) {
-    if (message.author === undefined) {
-      message.author = this.user;
-    }
-    if (message.id === undefined) {
-      message.id = String(Number(this._messages[this._messages.length - 1].id) + 1);
-    }
-    if (message.createdAt === undefined) {
-      message.createdAt = new Date();
-    }
-    if (MessageList.validate(message)) {
-      const newMessage = new Message(
-        message.id,
-        message.text,
-        message.createdAt,
-        message.author,
-        message.isPersonal,
-        message.to,
-      );
-      this._messages.push(newMessage);
-      this._save();
-      return true;
-    }
-    return false;
-  }
-
-  addAll(messages) {
-    const unvalidatedMessages = [];
-    messages.forEach((message) => {
-      if (!this.add(message)) {
-        unvalidatedMessages.push(message);
-      }
-    });
-    this._save();
-    return unvalidatedMessages;
-  }
-
-  remove(id) {
-    const message = this.get(id);
-    if (message) {
-      const index = this._messages.indexOf(message);
-      if (this.user) {
-        if (message.author === this.user) {
-          this._messages.splice(index, 1);
-          this._save();
-          return true;
-        }
-        return false;
-      }
-      this._messages.splice(index, 1);
-      this._save();
-      return true;
-    }
-    return false;
-  }
-
-  edit(id, editedMessage) {
-    function copy(sourceMessage, newMessage) {
-      sourceMessage.id = newMessage.id;
-      sourceMessage.author = newMessage.author;
-      sourceMessage.text = newMessage.text;
-      if (newMessage.isPersonal) {
-        sourceMessage.isPersonal = newMessage.isPersonal;
-      }
-      if (newMessage.to) {
-        sourceMessage.to = newMessage.to;
-      }
-      if (newMessage.createdAt) {
-        sourceMessage.createdAt = newMessage.createdAt;
-      }
-    }
-    if (editedMessage.author === undefined) {
-      editedMessage.author = this.user;
-    }
-    if (editedMessage.id === undefined) {
-      editedMessage.id = String(Number(this._messages[this._messages.length - 1].id) + 1);
-    }
-    if (MessageList.validate(editedMessage)) {
-      const editableMessage = this.get(id);
-      if (editableMessage) {
-        if (this.user) {
-          if (editableMessage.author === this.user) {
-            copy(editableMessage, editedMessage);
-            this._save();
-            return true;
-          }
-          return false;
-        }
-        copy(editableMessage, editedMessage);
-        this._save();
-        return true;
-      }
-      return false;
-    }
-    return false;
-  }
-
-  clear() {
-    this._messages = [];
-    this._save();
   }
 }
 
@@ -284,100 +265,6 @@ class User {
   constructor(name, avatar) {
     this.name = name;
     this.avatar = avatar;
-  }
-}
-
-class UserList {
-  constructor() {
-    this._restore();
-  }
-
-  _save() {
-    localStorage.setItem('users', JSON.stringify(this._users));
-    localStorage.setItem('activeUsers', JSON.stringify(this._activeUsers));
-    localStorage.setItem('currentUser', JSON.stringify(this._currentUser));
-  }
-
-  _restore() {
-    this._users = JSON.parse(localStorage.getItem('users'));
-    this._activeUsers = JSON.parse(localStorage.getItem('activeUsers'));
-    this._currentUser = JSON.parse(localStorage.getItem('currentUser'));
-  }
-
-  setCurrentUser(name) {
-    const activeUserIndex = this.getActiveUserIndex(name);
-    if (activeUserIndex !== -1) {
-      this._currentUser = this._activeUsers[activeUserIndex];
-    }
-    this._save();
-  }
-
-  getCurrentUser() {
-    return this._currentUser;
-  }
-
-  addUser(name, avatar) {
-    if (this.getUserIndex(name) === -1) {
-      this._users.push(new User(name, avatar));
-    }
-    this._save();
-  }
-
-  setActiveUser(name) {
-    const userIndex = this.getUserIndex(name);
-    const activeUserIndex = this.getActiveUserIndex(name);
-    if (userIndex !== -1 && activeUserIndex === -1) {
-      this._activeUsers.push(this._users[userIndex]);
-    }
-    this._save();
-  }
-
-  setPassiveUser(name) {
-    const activeUserIndex = this.getActiveUserIndex(name);
-    if (activeUserIndex !== -1) {
-      this._activeUsers.splice(activeUserIndex, 1);
-    }
-    this._save();
-  }
-
-  deleteUser(name) {
-    const index = this.getUserIndex(name);
-    if (index !== -1) {
-      this._users.splice(index, 1);
-    }
-    this._save();
-  }
-
-  getUserIndex(name) {
-    if (!this._users) {
-      return -1;
-    }
-    for (let i = 0; i < this._users.length; i++) {
-      if (name === this._users[i].name) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  getActiveUserIndex(name) {
-    if (!this._activeUsers) {
-      return -1;
-    }
-    for (let i = 0; i < this._activeUsers.length; i++) {
-      if (name === this._activeUsers[i].name) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  getAllUsers() {
-    return this._users;
-  }
-
-  getAllActiveUsers() {
-    return this._activeUsers;
   }
 }
 
@@ -460,72 +347,9 @@ class FiltersView {
   }
 }
 
-function checkLocalStorage() {
-  const readyUsers = [
-    new User('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png'),
-    new User('User2', 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png'),
-    new User('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png'),
-    new User('User4', 'https://cdn.iconscout.com/icon/free/png-256/avatar-372-456324.png'),
-  ];
-  const readyActiveUsers = [
-    new User('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png'),
-    new User('User2', 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png'),
-    new User('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png'),
-  ];
-  const readyCurrentUser = readyActiveUsers[0];
-  const readyMessages = [
-    new Message(
-      '0',
-      'Hello User1!',
-      new Date(),
-      'User2',
-      false,
-    ),
-
-    new Message(
-      '1',
-      'Hello!',
-      new Date(),
-      'User1',
-      false,
-    ),
-
-    new Message(
-      '2',
-      'Hello User2!',
-      new Date(),
-      'User1',
-      true,
-      'User2',
-    ),
-
-    new Message(
-      '3',
-      '...',
-      new Date(),
-      'User3',
-      false,
-    ),
-  ];
-
-  if (localStorage.getItem('users') === null) {
-    localStorage.setItem('users', JSON.stringify(readyUsers));
-  }
-
-  if (localStorage.getItem('activeUsers') === null) {
-    localStorage.setItem('activeUsers', JSON.stringify(readyActiveUsers));
-  }
-
-  if (localStorage.getItem('currentUser') === null) {
-    localStorage.setItem('currentUser', JSON.stringify(readyCurrentUser));
-  }
-
-  if (localStorage.getItem('messages') === null) {
-    localStorage.setItem('messages', JSON.stringify(readyMessages));
-  }
-}
-
 // CONTROLLER
+
+const chatApi = new ChatApiService('https://jslabdb.datamola.com');
 
 class ChatController {
   constructor() {
@@ -534,15 +358,11 @@ class ChatController {
     this.currentFilter = null;
     this.currentSelectedUser = 'All';
 
-    this.messageList = new MessageList();
     this.messagesView = new MessagesView('messages');
-    this.userList = new UserList();
     this.activeUsersView = new ActiveUsersView('usersList');
     this.helpBoxView = new HelpBoxView('mymessage');
     this.filtersView = new FiltersView('filters');
     this.headerView = new HeaderView('avatar', 'currentUser');
-
-    checkLocalStorage();
 
     this.showHelpBox(this.currentSelectedUser);
     this.showActiveUsers();
@@ -550,45 +370,60 @@ class ChatController {
     this.loadCurrentUser();
   }
 
-  addMessage(text, isPersonal, to) {
-    if (this.messageList.add(new Message(undefined, text, undefined, undefined, isPersonal, to))) {
+  async addMessage(text, isPersonal, to) {
+    const messageId = await chatApi.addMessage(text, isPersonal, to);
+    if (messageId != null) {
+      console.log(messageId);
       this.showMessages();
     }
   }
 
-  editMessage(id, text, isPersonal, to) {
-    if (this.messageList.edit(id, new Message(undefined, text, undefined, undefined, isPersonal, to))) {
+  async editMessage(id, text, isPersonal, to) {
+    if (chatApi.editMessage(id, text, isPersonal, to)) {
       this.showMessages();
     }
   }
 
-  removeMessage(id) {
-    if (this.messageList.remove(id)) {
+  async removeMessage(id) {
+    if (chatApi.deleteMesssage(id)) {
       this.showMessages();
     }
   }
 
-  showMessages(skip, top, filter) {
-    if (filter) {
-      // eslint-disable-next-line no-use-before-define
-      this.currentFilter = filter;
-    }
-    this.messagesView.display(this.messageList.getPage(skip, top, filter), this.userList.getCurrentUser());
+  _getValidMessages(messages) {
+    messages.forEach((message) => {
+      message.createdAt = new Date(message.createdAt);
+    });
   }
 
-  showActiveUsers() {
-    this.activeUsersView.display(this.userList.getAllActiveUsers(), this.userList.getCurrentUser());
+  async showMessages() {
+    const messages = await chatApi.getMessages(this.currentSkip, this.currentTop, this.currentFilter);
+    this._getValidMessages(messages);
+    if (messages !== null) {
+      this.messagesView.display(messages, chatApi.getCurrentUser());
+    }
+  }
+
+  _sortActiveUsers(users) {
+    const activeUsers = [];
+    users.forEach((user) => {
+      if (user.isActive) {
+        activeUsers.push(new User(user.name, 'https://whatsism.com/uploads/posts/2018-07/1530546770_rmk_vdjbx10.jpg'));
+      }
+    });
+    return activeUsers;
+  }
+
+  async showActiveUsers() {
+    const users = await chatApi.getUsers();
+    if (users !== null) {
+      this.activeUsersView.display(this._sortActiveUsers(users), chatApi.getCurrentUser());
+    }
   }
 
   setCurrentUser(name, avatar) {
-    this.userList.addUser(name, avatar);
-    this.userList.setActiveUser(name);
-    this.userList.setCurrentUser(name);
-    this.messageList.user = name;
-
-    this.headerView.display(this.userList.getCurrentUser().avatar, this.userList.getCurrentUser().name);
-    this.showMessages();
-    this.showActiveUsers();
+    chatApi.setCurrentUser(new User(name, avatar));
+    this.headerView.display(chatApi.getCurrentUser().avatar, chatApi.getCurrentUser().name);
   }
 
   showHelpBox(to) {
@@ -600,12 +435,12 @@ class ChatController {
   }
 
   loadCurrentUser() {
-    const currentUserStorageText = localStorage.getItem('currentUser');
+    const currentUserStorageText = sessionStorage.getItem('currentUser');
     if (currentUserStorageText) {
       const currentUser = JSON.parse(currentUserStorageText);
       this.setCurrentUser(currentUser.name, currentUser.avatar);
     } else {
-      this.setCurrentUser(activeUsers[0].name, activeUsers[0].avatar);
+      document.location.href = '../error.html?errorCode=405&errorDescription=Unathorised';
     }
   }
 }
@@ -761,6 +596,15 @@ function addSendButtonEvent() {
   });
 }
 
+function addLogOutEvent() {
+  const logOutButton = document.getElementById('logOut');
+  logOutButton.addEventListener('click', () => {
+    chatApi.logOut();
+    document.location.href('../login.html');
+  });
+}
+
+addLogOutEvent();
 addFilterEvent();
 addSelectUserEvent();
 addLoadOtherMessagesButtonEvent();
