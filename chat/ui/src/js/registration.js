@@ -26,9 +26,9 @@ class ChatApiService {
 
   _handleRegisterResponse(response) {
     if (response.status === 200) {
-      document.location.href = '../login.html';
+      document.location.href = './login.html';
     } else {
-      // document.location.href = '../error.html'; ПЕРЕХОД НА СТРАНИЦУ ОШИБКИ С КОДОМ
+      document.location.href = `../error.html?errorCode=${response.status}&errorDescription=${response.statusText}`;
     }
   }
 }
