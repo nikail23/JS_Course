@@ -193,12 +193,10 @@ class ChatApiService {
       redirect: 'follow',
     };
 
-    const result = await fetch(`${this._address}/auth/logout`, requestOptions)
+    await fetch(`${this._address}/auth/logout`, requestOptions)
       .then((response) => response.text())
       .then((result) => result)
       .catch((error) => console.log('error', error));
-
-    return result;
   }
 
   async getUsers() {
@@ -254,7 +252,7 @@ class MessagesView {
       const infoString = `${message.isPersonal ? `Personal message to ${message.to}` : 'Common message'} from ${message.author},<br/> at ${formatDate}`;
       if (message.author === currentUser.name) {
         messagesHTML
-          += `<div class="commonSentMessage" id="${message.id}">
+          += `<div class="sentMessage" id="${message.id}">
           <input type="text" disabled value="${message.text}">
           <img class="imgMes1 delete" src="https://icon-library.com/images/deleted-icon/deleted-icon-18.jpg"/>
           <img class="imgMes1 edit" src="https://upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/1024px-OOjs_UI_icon_edit-ltr-progressive.svg.png"/>
@@ -262,7 +260,7 @@ class MessagesView {
         <div class="info info2">${infoString}</div> `;
       } else {
         messagesHTML
-          += `<div class="commonComeMessage" id="${message.id}">
+          += `<div class="comeMessage" id="${message.id}">
           <input type="text" disabled value="${message.text}">
           </div>  
         <div class="info info1">${infoString}</div>`;
@@ -370,14 +368,16 @@ class ChatController {
     this.currentSelectedUser = 'All';
 
     this.messagesView = new MessagesView('messages');
-    this.activeUsersView = new ActiveUsersView('usersList');
-    this.helpBoxView = new HelpBoxView('mymessage');
+    this.activeUsersView = new ActiveUsersView('userList');
+    this.helpBoxView = new HelpBoxView('helpBox');
     this.filtersView = new FiltersView('filters');
     this.headerView = new HeaderView('avatar', 'currentUser');
 
     this.showHelpBox(this.currentSelectedUser);
     this.loadCurrentUser();
 
+    this.showActiveUsers();
+    this.showMessages(this.currentSkip, this.currentTop, this.currentFilter);
     this.startShortPolling(2000);
   }
 
@@ -536,8 +536,7 @@ class ChatController {
   }
 
   async logOut() {
-    const result = await this.chatApi.logOut();
-    console.log(result);
+    await this.chatApi.logOut();
     document.location.href = '../login.html';
   }
 }
@@ -553,14 +552,13 @@ function addSelectUserEvent() {
       if (oldSelectedUser === chatController.currentSelectedUser) {
         chatController.currentSelectedUser = 'All';
       }
-      const helpContainer = document.getElementById('mymessage');
       chatController.showHelpBox(chatController.currentSelectedUser);
     });
   });
 }
 
 function addLoadOtherMessagesButtonEvent() {
-  const loadOtherMessagesButton = document.getElementById('loadmore');
+  const loadOtherMessagesButton = document.getElementById('loadMoreButton');
   loadOtherMessagesButton.addEventListener('click', (event) => {
     chatController.currentTop += 10;
     chatController.showMessages(chatController.currentSkip, chatController.currentTop, chatController.currentFilter);
@@ -571,8 +569,12 @@ function addDeleteEventToAllMessages() {
   const deleteMessageButtons = document.getElementsByClassName('delete');
   Array.prototype.slice.call(deleteMessageButtons).forEach((button) => {
     button.addEventListener('click', (event) => {
+      chatController.endShortPolling();
+
       const messageContainer = button.parentNode;
       chatController.removeMessage(messageContainer.id);
+
+      chatController.startShortPolling(2000);
     });
   });
 }
@@ -598,8 +600,6 @@ function addEditEventToAllMessages() {
         switch (event.keyCode) {
           case 13:
             chatController.editMessage(messageContainer.id, messageInput.value);
-            addDeleteEventToAllMessages();
-            addEditEventToAllMessages();
             messageContainer.appendChild(deleteButton);
             messageContainer.appendChild(editButton);
             messageInput.setAttribute('disabled', true);
@@ -625,6 +625,8 @@ function addFilterEvent() {
   const filterCancelButton = document.getElementById('filterCancelButton');
 
   filterSendButton.addEventListener('click', (event) => {
+    chatController.endShortPolling();
+
     const filtersBox = document.getElementById('filters');
     const authorFilterBox = filtersBox.children[0];
     const dateFromFilterBox = filtersBox.children[1];
@@ -657,9 +659,13 @@ function addFilterEvent() {
     chatController.currentFilter = filter;
 
     chatController.showMessages(this.currentSkip, this.currentTop, this.currentFilter);
+
+    chatController.startShortPolling(2000);
   });
 
   filterCancelButton.addEventListener('click', (event) => {
+    chatController.endShortPolling();
+
     const filtersBox = document.getElementById('filters');
     filtersBox.children[0].value = null;
     filtersBox.children[1].value = null;
@@ -668,12 +674,16 @@ function addFilterEvent() {
 
     chatController.currentFilter = null;
     chatController.showMessages(chatController.currentSkip, chatController.currentTop, chatController.currentFilter);
+
+    chatController.startShortPolling(2000);
   });
 }
 
 function addSendButtonEvent() {
   const messageInput = document.getElementById('sendButton');
   messageInput.addEventListener('click', (event) => {
+    chatController.endShortPolling();
+
     event.preventDefault();
     const textInput = document.getElementById('myInput');
     const messageText = textInput.value;
@@ -689,45 +699,23 @@ function addSendButtonEvent() {
     textInput.value = '';
     const messagesContainer = document.getElementById('messages');
     messagesContainer.scrollTo(0, document.body.scrollHeight);
+
+    chatController.startShortPolling(2000);
   });
 }
 
 function addLogOutEvent() {
   const logOutButton = document.getElementById('logOut');
   logOutButton.addEventListener('click', () => {
+    chatController.endShortPolling();
     chatController.logOut();
-  });
-}
-
-async function addFilterInputsEvent() {
-  async function eventFunction(input) {
-    const promise = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        while (input === document.activeElement) {}
-        chatController.startShortPolling(2000);
-        resolve();
-      }, 0);
-    });
-
-    if (input === document.activeElement) {
-      chatController.endShortPolling();
-      await promise;
-    }
-  }
-  const inputs = document.getElementsByClassName('filterInput');
-  const inputsArray = Array.prototype.slice.call(inputs);
-
-  inputsArray.forEach((input) => {
-    input.addEventListener('click', eventFunction(input));
   });
 }
 
 addLogOutEvent();
 addFilterEvent();
-addFilterInputsEvent();
 addSelectUserEvent();
 addLoadOtherMessagesButtonEvent();
 addSendButtonEvent();
 addDeleteEventToAllMessages();
 addEditEventToAllMessages();
-

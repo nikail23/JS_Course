@@ -13,7 +13,7 @@ class ChatApiService {
     this.address = address;
   }
 
-  sendLoginRequest(login, password) {
+  async sendLoginRequest(login, password) {
     const formdata = new FormData();
     formdata.append('name', login);
     formdata.append('pass', password);
@@ -24,32 +24,34 @@ class ChatApiService {
       redirect: 'follow',
     };
 
-    fetch(`${this.address}/auth/login`, requestOptions)
-      .then((response) => response.text())
-      .then((result) => this.handleLoginResponse(result, login))
+    const loginResult = await fetch(`${this.address}/auth/login`, requestOptions)
+      .then((response) => response.json())
+      .then((result) => result)
       .catch((error) => console.log('error', error));
-  }
 
-  handleLoginResponse(result, login) {
-    if (result.indexOf('token') !== -1) {
-      sessionStorage.setItem('token', result.substring(10, result.length - 2));
-      sessionStorage.setItem('currentUser', JSON.stringify(new User(login, 'https://image.flaticon.com/icons/png/512/194/194938.png')));
-      document.location.href = '../main.html';
-    } else {
-      // ошибка, выводим пользователю на экран
-    }
+    return loginResult;
   }
 }
 
 const chatApi = new ChatApiService('https://jslabdb.datamola.com');
 
 const loginButton = document.getElementById('loginButton');
-loginButton.addEventListener('click', () => {
+loginButton.addEventListener('click', async () => {
   const loginInput = document.getElementById('login');
   const passwordInput = document.getElementById('password');
 
   const login = loginInput.value;
   const password = passwordInput.value;
 
-  chatApi.sendLoginRequest(login, password);
+  const result = await chatApi.sendLoginRequest(login, password);
+
+  if (result.token) {
+    sessionStorage.setItem('token', result.token);
+    sessionStorage.setItem('currentUser', JSON.stringify(new User(login, 'https://image.flaticon.com/icons/png/512/194/194938.png')));
+    document.location.href = '../main.html';
+  } else {
+    loginInput.value = '';
+    loginInput.placeholder = result.error;
+    passwordInput.value = '';
+  }
 });

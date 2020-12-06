@@ -4,7 +4,7 @@ class ChatApiService {
     this.address = address;
   }
 
-  sendRegisterRequest(login, password) {
+  async sendRegisterRequest(login, password) {
     const formdata = new FormData();
     formdata.append('name', login);
     formdata.append('pass', password);
@@ -18,25 +18,19 @@ class ChatApiService {
     const requestAddress = `${this.address}/auth/register`;
     console.log(requestAddress);
 
-    fetch(requestAddress, requestOptions)
-      .then((response) => this._handleRegisterResponse(response))
-      .then((result) => console.log(result))
+    const registerResult = await fetch(requestAddress, requestOptions)
+      .then((response) => response.json())
+      .then((result) => result)
       .catch((error) => console.log('error', error));
-  }
 
-  _handleRegisterResponse(response) {
-    if (response.status === 200) {
-      document.location.href = './login.html';
-    } else {
-      document.location.href = `../error.html?errorCode=${response.status}&errorDescription=${response.statusText}`;
-    }
+    return registerResult;
   }
 }
 
 const chatApi = new ChatApiService('https://jslabdb.datamola.com');
 
 const registerButton = document.getElementById('register');
-registerButton.addEventListener('click', () => {
+registerButton.addEventListener('click', async () => {
   const loginInput = document.getElementById('login');
   const passwordInput = document.getElementById('password');
   const repeatPasswordInput = document.getElementById('repeatPassword');
@@ -83,5 +77,14 @@ registerButton.addEventListener('click', () => {
     return;
   }
 
-  chatApi.sendRegisterRequest(login, password);
+  const result = await chatApi.sendRegisterRequest(login, password);
+
+  if (result !== undefined && result.error) {
+    loginInput.value = '';
+    loginInput.placeholder = result.error;
+    passwordInput.value = '';
+    repeatPasswordInput.value = '';
+  } else {
+    document.location.href = '../login.html';
+  }
 });
