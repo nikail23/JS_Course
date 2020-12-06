@@ -53,21 +53,33 @@ class ChatApiService {
     if (filter !== undefined && filter !== null) {
       if (filter.dateTo !== undefined) {
         if (isFirst) {
-          request += `&dateTo=${filter.dateTo}`;
+          const year = filter.dateTo.getFullYear();
+          const month = ('0'+(filter.dateTo.getMonth() + 1)).slice(-2);
+          const day = ('0'+filter.dateTo.getDate()).slice(-2);
+          request += `&dateTo=${year}${month}${day}`;
         } else {
           isFirst = true;
-          request += `dateTo=${filter.dateTo}`;
+          const year = filter.dateTo.getFullYear();
+          const month = ('0'+(filter.dateTo.getMonth() + 1)).slice(-2);
+          const day = ('0'+filter.dateTo.getDate()).slice(-2);
+          request += `dateTo=${year}${month}${day}`;
         }
       }
       if (filter.dateFrom !== undefined) {
         if (isFirst) {
-          request += `&dateFrom=${filter.dateFrom}`;
+          const year = filter.dateFrom.getFullYear();
+          const month = ('0'+(filter.dateFrom.getMonth() + 1)).slice(-2);
+          const day = ('0'+filter.dateFrom.getDate()).slice(-2);
+          request += `dateFrom=${year}${month}${day}`;
         } else {
           isFirst = true;
-          request += `dateFrom=${filter.dateFrom}`;
+          const year = filter.dateFrom.getFullYear();
+          const month = ('0'+(filter.dateFrom.getMonth() + 1)).slice(-2);
+          const day = ('0'+filter.dateFrom.getDate()).slice(-2);
+          request += `&dateFrom=${year}${month}${day}`;
         }
       }
-      if (filter.author !== undefined) {
+      if (filter.author !== undefined && filter.author !== '') {
         if (isFirst) {
           request += `&author=${filter.author}`;
         } else {
@@ -75,7 +87,7 @@ class ChatApiService {
           request += `author=${filter.author}`;
         }
       }
-      if (filter.text !== undefined) {
+      if (filter.text !== undefined && filter.text !== '') {
         if (isFirst) {
           request += `&text=${filter.text}`;
         } else {
@@ -253,7 +265,7 @@ class MessagesView {
       if (message.author === currentUser.name) {
         messagesHTML
           += `<div class="sentMessage" id="${message.id}">
-          <input type="text" disabled value="${message.text}">
+          <textarea name="text" cols="30" rows="2" disabled>${message.text}</textarea>
           <img class="imgMes1 delete" src="https://icon-library.com/images/deleted-icon/deleted-icon-18.jpg"/>
           <img class="imgMes1 edit" src="https://upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/1024px-OOjs_UI_icon_edit-ltr-progressive.svg.png"/>
         </div>  
@@ -261,7 +273,7 @@ class MessagesView {
       } else {
         messagesHTML
           += `<div class="comeMessage" id="${message.id}">
-          <input type="text" disabled value="${message.text}">
+          <textarea name="text" cols="30" rows="2" disabled>${message.text}</textarea>
           </div>  
         <div class="info info1">${infoString}</div>`;
       }
@@ -419,65 +431,13 @@ class ChatController {
   }
 
   _sortMessages(messages, skip, top, filterConfig) {
-    let messagesBuffer = messages.slice();
-
-    if (!skip) skip = 0;
-    if (!top) top = 10;
-
-    if (filterConfig) {
-      if (filterConfig.author) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].author.indexOf(filterConfig.author) === -1) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-
-      if (filterConfig.dateFrom) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].createdAt < filterConfig.dateFrom) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-
-      if (filterConfig.dateTo) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].createdAt > filterConfig.dateTo) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-
-      if (filterConfig.text) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].text.indexOf(filterConfig.text) === -1) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-    }
+    const messagesBuffer = messages.slice();
 
     function compareDates(message1, message2) {
       return message1.createdAt - message2.createdAt;
     }
     messagesBuffer.sort(compareDates);
 
-    let startIndex = messagesBuffer.length - top - skip;
-    if (startIndex < 0) {
-      startIndex = 0;
-    }
-
-    let endIndex = messagesBuffer.length - skip;
-    if (endIndex < 0) {
-      endIndex = 0;
-    }
-
-    messagesBuffer = messagesBuffer.slice(startIndex, endIndex);
     return messagesBuffer;
   }
 
@@ -587,6 +547,7 @@ function addEditEventToAllMessages() {
 
       const messageContainer = button.parentNode;
       const messageInput = messageContainer.children[0];
+      messageInput.style = 'background-color: var(--first-bg-color);';
       const messageText = messageInput.value;
 
       const editButton = messageContainer.children[1];
@@ -594,14 +555,18 @@ function addEditEventToAllMessages() {
 
       messageContainer.removeChild(editButton);
       messageContainer.removeChild(deleteButton);
+      messageContainer.classList.add('editMessage');
       messageInput.removeAttribute('disabled');
 
       messageInput.addEventListener('keydown', (event) => {
         switch (event.keyCode) {
           case 13:
-            chatController.editMessage(messageContainer.id, messageInput.value);
+            if (messageInput.value.length > 0) {
+              chatController.editMessage(messageContainer.id, messageInput.value);
+            }
             messageContainer.appendChild(deleteButton);
             messageContainer.appendChild(editButton);
+            messageContainer.classList.remove('editMessage');
             messageInput.setAttribute('disabled', true);
             chatController.startShortPolling(2000);
             break;
@@ -609,6 +574,7 @@ function addEditEventToAllMessages() {
             messageInput.value = messageText;
             messageContainer.appendChild(deleteButton);
             messageContainer.appendChild(editButton);
+            messageContainer.classList.remove('editMessage');
             messageInput.setAttribute('disabled', true);
             chatController.startShortPolling(2000);
             break;

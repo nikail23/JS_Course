@@ -1,52 +1,51 @@
 @import "./commonStyle.css";
 
 main {
-    text-align: center;
-    display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 form {
-    margin: auto;
-    text-align: center;
+  margin-top: 27vh;
 }
 
 input {
-    border: 0;
-    border-radius: 5px;
+  border: 0;
+  border-radius: 5px;
 }
 
-input:focus, input:active{
-    outline: none;
+input:focus,
+input:active {
+  outline: none;
 }
 
 input[type="text"] {
-    display: block;
-    width: 20rem;
-    height: 2rem;
-    background-color: var(--input-bg-color);
-    margin-bottom: 1rem;
-    padding-left: 1rem;
+  display: block;
+  width: 20rem;
+  height: 2rem;
+  background-color: var(--input-bg-color);
+  margin-bottom: 1rem;
+  padding-left: 1rem;
 }
 
 input[type="password"] {
-    display: block;
-    width: 20rem;
-    height: 2rem;
-    background-color: var(--input-bg-color);
-    margin-bottom: 1rem;
-    padding-left: 1rem;
+  display: block;
+  width: 20rem;
+  height: 2rem;
+  background-color: var(--input-bg-color);
+  margin-bottom: 1rem;
+  padding-left: 1rem;
 }
 
 input[type="button"] {
-    display: block;
-    width: 10rem;
-    height: 2rem;
-    background-color: var(--nonactive-button-color);
-    margin: auto;
-    cursor: pointer;
+  display: block;
+  width: 10rem;
+  height: 2rem;
+  background-color: var(--nonactive-button-color);
+  margin: auto;
+  cursor: pointer;
 }
 
 input[type="button"]:hover {
-    background-color: var(--active-button-color);
+  background-color: var(--active-button-color);
 }

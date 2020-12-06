@@ -81,7 +81,11 @@ registerButton.addEventListener('click', async () => {
 
   if (result !== undefined && result.error) {
     loginInput.value = '';
-    loginInput.placeholder = result.error;
+    if (result.error.indexOf('E11000') !== -1) {
+      loginInput.placeholder = 'User with current login already exists!';
+    } else {
+      loginInput.placeholder = result.error;
+    }
     passwordInput.value = '';
     repeatPasswordInput.value = '';
   } else {
