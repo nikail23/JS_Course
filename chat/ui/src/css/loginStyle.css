@@ -1,14 +1,12 @@
 @import "./commonStyle.css";
 
 main {
-    text-align: center;
     display: flex;
     justify-content: center;
 }
 
 form {
-    margin: auto;
-    text-align: center;
+    margin-top: 30vh;
 }
 
 input {

@@ -1,5 +1,6 @@
 /* eslint-disable no-else-return */
 /* eslint-disable no-undef */
+
 class User {
   constructor(name, avatar) {
     this.name = name;
@@ -7,70 +8,50 @@ class User {
   }
 }
 
-let users = [];
-let activeUsers = [];
+class ChatApiService {
+  constructor(address) {
+    this.address = address;
+  }
 
-function loadUsers() {
-  const usersStorageString = localStorage.getItem('users');
-  if (usersStorageString) {
-    users = JSON.parse(usersStorageString);
+  async sendLoginRequest(login, password) {
+    const formdata = new FormData();
+    formdata.append('name', login);
+    formdata.append('pass', password);
+
+    const requestOptions = {
+      method: 'POST',
+      body: formdata,
+      redirect: 'follow',
+    };
+
+    const loginResult = await fetch(`${this.address}/auth/login`, requestOptions)
+      .then((response) => response.json())
+      .then((result) => result)
+      .catch((error) => console.log('error', error));
+
+    return loginResult;
   }
 }
 
-function loadActiveUsers() {
-  const activeUsersStorageString = localStorage.getItem('activeUsers');
-  if (activeUsersStorageString) {
-    activeUsers = JSON.parse(activeUsersStorageString);
-  }
-}
-
-function saveActiveAndCurrentUsers(currentUser) {
-  localStorage.setItem('activeUsers', JSON.stringify(activeUsers));
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-}
-
-function checkUserInActiveUsers(userLogin) {
-  let isFind = false;
-  activeUsers.forEach((user) => {
-    if (user.name === userLogin) {
-      isFind = true;
-    }
-  });
-  return isFind;
-}
+const chatApi = new ChatApiService('https://jslabdb.datamola.com');
 
 const loginButton = document.getElementById('loginButton');
-loginButton.addEventListener('click', () => {
+loginButton.addEventListener('click', async () => {
   const loginInput = document.getElementById('login');
-  // const passwordInput = document.getElementById('password');
+  const passwordInput = document.getElementById('password');
 
   const login = loginInput.value;
-  // const password = passwordInput.value;
+  const password = passwordInput.value;
 
-  function getUser(userLogin) {
-    let findUser = null;
-    users.forEach((user) => {
-      if (user.name === userLogin) {
-        findUser = user;
-      }
-    });
-    return findUser;
-  }
+  const result = await chatApi.sendLoginRequest(login, password);
 
-  const logInUser = getUser(login);
-  if (logInUser === null) {
+  if (result.token) {
+    sessionStorage.setItem('token', result.token);
+    sessionStorage.setItem('currentUser', JSON.stringify(new User(login, 'https://image.flaticon.com/icons/png/512/194/194938.png')));
+    document.location.href = '../main.html';
+  } else {
     loginInput.value = '';
-    loginInput.placeholder = 'User with same login not founded.';
-    return;
+    loginInput.placeholder = result.error;
+    passwordInput.value = '';
   }
-
-  if (!checkUserInActiveUsers(logInUser.name)) {
-    activeUsers.push(logInUser);
-  }
-  saveActiveAndCurrentUsers(logInUser);
-
-  document.location.href = '../main.html';
 });
-
-loadUsers();
-loadActiveUsers();

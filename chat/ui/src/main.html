@@ -22,20 +22,20 @@
             <div class="currentUser" id="currentUser">
                 User1
             </div>
-            <a class="headerLink" href="./login.html">Log out</a>
+            <a class="headerLink" id="logOut">Log out</a>
         </div>
     </header>
     <main>
-        <div id="usersList" class="usersList">
+        <div id="userList" class="userList">
         </div>
         </div>
         <div class="chat">
-            <button class="loadmore" id="loadmore">Load old messages <b>&and;</b></button>
+            <button class="loadMoreButton" id="loadMoreButton">Load old messages <b>&and;</b></button>
             <div id="messages" class="messages">
             </div>
             <form class="input">
                 <div class="messageInput">
-                    <div class="inputText mymessage" id="mymessage">
+                    <div class="inputText helpBox" id="helpBox">
                         
                     </div>
                     <input type="text" name="messageTextImput" id="myInput" class="mymessageInput"> 
@@ -46,11 +46,11 @@
             </form>
         </div>
         <div id="filters" class="filters">
-            <input type="text" placeholder="Username filter">
-            <input type="text" placeholder="Date from" onfocus="(this.type='date')" id="date">
-            <input type="text" placeholder="Date to" onfocus="(this.type='date')" id="date">
-            <input type="text" placeholder="Messages filter">
-            <div>
+            <input type="text" class="filterInput" placeholder="Username filter">
+            <input type="text" class="filterInput" placeholder="Date from" onfocus="(this.type='date')" id="date">
+            <input type="text" class="filterInput" placeholder="Date to" onfocus="(this.type='date')" id="date">
+            <input type="text" class="filterInput" placeholder="Messages filter">
+            <div class="filters-btn">
                 <input type="submit" id="filterSendButton" class="messageButton" value="Apply filters">
                 <input type="submit" id="filterCancelButton" class="messageButton" value="Cancel filters">
             </div>

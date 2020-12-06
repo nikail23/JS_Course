@@ -1,26 +1,36 @@
 /* eslint-disable no-undef */
-class User {
-  constructor(name, avatar) {
-    this.name = name;
-    this.avatar = avatar;
+class ChatApiService {
+  constructor(address) {
+    this.address = address;
+  }
+
+  async sendRegisterRequest(login, password) {
+    const formdata = new FormData();
+    formdata.append('name', login);
+    formdata.append('pass', password);
+
+    const requestOptions = {
+      method: 'POST',
+      body: formdata,
+      redirect: 'follow',
+    };
+
+    const requestAddress = `${this.address}/auth/register`;
+    console.log(requestAddress);
+
+    const registerResult = await fetch(requestAddress, requestOptions)
+      .then((response) => response.json())
+      .then((result) => result)
+      .catch((error) => console.log('error', error));
+
+    return registerResult;
   }
 }
 
-let users = [];
-
-function loadUsers() {
-  const usersStorageString = localStorage.getItem('users');
-  if (usersStorageString) {
-    users = JSON.parse(usersStorageString);
-  }
-}
-
-function saveUsers() {
-  localStorage.setItem('users', JSON.stringify(users));
-}
+const chatApi = new ChatApiService('https://jslabdb.datamola.com');
 
 const registerButton = document.getElementById('register');
-registerButton.addEventListener('click', () => {
+registerButton.addEventListener('click', async () => {
   const loginInput = document.getElementById('login');
   const passwordInput = document.getElementById('password');
   const repeatPasswordInput = document.getElementById('repeatPassword');
@@ -39,22 +49,6 @@ registerButton.addEventListener('click', () => {
   if (login.match(checkLogin) === null) {
     loginInput.value = '';
     loginInput.placeholder = 'Login must consist of a-z, A-Z, 0-9.';
-    return;
-  }
-
-  function checkUserInUsers(userLogin) {
-    let isFind = false;
-    users.forEach((user) => {
-      if (user.name === userLogin) {
-        isFind = true;
-      }
-    });
-    return isFind;
-  }
-
-  if (checkUserInUsers(login)) {
-    loginInput.value = '';
-    loginInput.placeholder = 'User with same login detected.';
     return;
   }
 
@@ -83,10 +77,18 @@ registerButton.addEventListener('click', () => {
     return;
   }
 
-  const newUser = new User(login, 'https://image.flaticon.com/icons/png/512/194/194938.png');
-  users.push(newUser);
-  saveUsers();
-  document.location.href = '../login.html';
-});
+  const result = await chatApi.sendRegisterRequest(login, password);
 
-loadUsers();
+  if (result !== undefined && result.error) {
+    loginInput.value = '';
+    if (result.error.indexOf('E11000') !== -1) {
+      loginInput.placeholder = 'User with current login already exists!';
+    } else {
+      loginInput.placeholder = result.error;
+    }
+    passwordInput.value = '';
+    repeatPasswordInput.value = '';
+  } else {
+    document.location.href = '../login.html';
+  }
+});

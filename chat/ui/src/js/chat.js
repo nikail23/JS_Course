@@ -1,7 +1,235 @@
+/* eslint-disable no-empty */
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-shadow */
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 /* eslint-disable max-len */
+class ChatApiService {
+  constructor(address) {
+    this._address = address;
+    this._token = sessionStorage.getItem('token');
+
+    this._messages = [];
+
+    this._activeUsers = [];
+    this._currentUser = null;
+  }
+
+  setCurrentUser(user) {
+    this._currentUser = user;
+  }
+
+  getCurrentUser() {
+    return this._currentUser;
+  }
+
+  async getMessages(skip, top, filter) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${this._token}`);
+
+    const requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    let request = `${this._address}/messages?`;
+    let isFirst = false;
+
+    if (skip !== undefined) {
+      request += `skip=${skip}`;
+      isFirst = true;
+    }
+
+    if (top !== undefined) {
+      if (isFirst) {
+        request += `&top=${top}`;
+      } else {
+        isFirst = true;
+        request += `top=${top}`;
+      }
+    }
+
+    if (filter !== undefined && filter !== null) {
+      if (filter.dateTo !== undefined) {
+        if (isFirst) {
+          const year = filter.dateTo.getFullYear();
+          const month = ('0'+(filter.dateTo.getMonth() + 1)).slice(-2);
+          const day = ('0'+filter.dateTo.getDate()).slice(-2);
+          request += `&dateTo=${year}${month}${day}`;
+        } else {
+          isFirst = true;
+          const year = filter.dateTo.getFullYear();
+          const month = ('0'+(filter.dateTo.getMonth() + 1)).slice(-2);
+          const day = ('0'+filter.dateTo.getDate()).slice(-2);
+          request += `dateTo=${year}${month}${day}`;
+        }
+      }
+      if (filter.dateFrom !== undefined) {
+        if (isFirst) {
+          const year = filter.dateFrom.getFullYear();
+          const month = ('0'+(filter.dateFrom.getMonth() + 1)).slice(-2);
+          const day = ('0'+filter.dateFrom.getDate()).slice(-2);
+          request += `dateFrom=${year}${month}${day}`;
+        } else {
+          isFirst = true;
+          const year = filter.dateFrom.getFullYear();
+          const month = ('0'+(filter.dateFrom.getMonth() + 1)).slice(-2);
+          const day = ('0'+filter.dateFrom.getDate()).slice(-2);
+          request += `&dateFrom=${year}${month}${day}`;
+        }
+      }
+      if (filter.author !== undefined && filter.author !== '') {
+        if (isFirst) {
+          request += `&author=${filter.author}`;
+        } else {
+          isFirst = true;
+          request += `author=${filter.author}`;
+        }
+      }
+      if (filter.text !== undefined && filter.text !== '') {
+        if (isFirst) {
+          request += `&text=${filter.text}`;
+        } else {
+          isFirst = true;
+          request += `text=${filter.text}`;
+        }
+      }
+    }
+
+    const messages = await fetch(request, requestOptions)
+      .then((response) => response.json())
+      .then((result) => result)
+      .catch((error) => console.log('error', error));
+
+    this._messages = messages;
+
+    return messages;
+  }
+
+  _getMessage(id) {
+    function checkId(element) {
+      if (element.id === id) {
+        return true;
+      }
+      return false;
+    }
+    return this._messages.find(checkId);
+  }
+
+  async addMessage(text, isPersonal, to) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${this._token}`);
+    myHeaders.append('Content-Type', 'application/json');
+
+    let raw;
+    if (isPersonal === false) {
+      raw = `{\n    "text": "${text}",\n    "isPersonal": ${isPersonal}\n}`;
+    } else {
+      raw = `{\n    "text": "${text}",\n    "isPersonal": ${isPersonal},\n    "to":"${to}"\n}`;
+    }
+
+    const requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow',
+    };
+
+    const result = await fetch(`${this._address}/messages`, requestOptions)
+      .then((response) => response.text())
+      .then((result) => result)
+      .catch((error) => console.log('error', error));
+
+    return result;
+  }
+
+  async editMessage(id, text) {
+    const message = this._getMessage(id);
+
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${this._token}`);
+    myHeaders.append('Content-Type', 'application/json');
+
+    let raw;
+    if (message.isPersonal === false) {
+      raw = `{\n    "text": "${text}",\n    "isPersonal": ${message.isPersonal}\n}`;
+    } else {
+      raw = `{\n    "text": "${text}",\n    "isPersonal": ${message.isPersonal},\n    "to":"${message.to}"\n}`;
+    }
+
+    const requestOptions = {
+      method: 'PUT',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow',
+    };
+
+    await fetch(`${this._address}/messages/${id}`, requestOptions)
+      .then((response) => {
+        if (response.statusText !== 'OK') {
+          document.location.href = `../error.html?errorCode=${response.status}&errorDescription=${response.statusText}`;
+        }
+      })
+      .catch((error) => console.log('error', error));
+  }
+
+  async deleteMesssage(id) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${this._token}`);
+
+    const requestOptions = {
+      method: 'DELETE',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    await fetch(`${this._address}/messages/${id}`, requestOptions)
+      .then((response) => {
+        if (response.statusText !== 'OK') {
+          document.location.href = `../error.html?errorCode=${response.status}&errorDescription=${response.statusText}`;
+        }
+      })
+      .then((result) => console.log(result))
+      .catch((error) => console.log('error', error));
+  }
+
+  async logOut() {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${this._token}`);
+    myHeaders.append('Content-Length', 0);
+
+    const requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    await fetch(`${this._address}/auth/logout`, requestOptions)
+      .then((response) => response.text())
+      .then((result) => result)
+      .catch((error) => console.log('error', error));
+  }
+
+  async getUsers() {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${this._token}`);
+
+    const requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    const users = await fetch(`${this._address}/users`, requestOptions)
+      .then((response) => response.json())
+      .then((result) => result)
+      .catch((error) => console.log('error', error));
+
+    return users;
+  }
+}
+
 class Message {
   constructor(id, text, createdAt, author, isPersonal, to) {
     this.id = id;
@@ -22,232 +250,6 @@ class FilterConfig {
   }
 }
 
-class MessageList {
-  constructor() {
-    this._restore();
-  }
-
-  get user() {
-    return this._user;
-  }
-
-  set user(value) {
-    this._user = value;
-  }
-
-  _save() {
-    localStorage.setItem('messages', JSON.stringify(this._messages));
-  }
-
-  _restore() {
-    this._messages = JSON.parse(localStorage.getItem('messages'));
-    this._messages.forEach((message) => {
-      message.createdAt = new Date(message.createdAt);
-    });
-  }
-
-  getMessagesLength() {
-    return this._messages.length;
-  }
-
-  getPage(skip, top, filterConfig) {
-    let messagesBuffer = this._messages.slice();
-
-    if (!skip) skip = 0;
-    if (!top) top = 10;
-
-    if (filterConfig) {
-      if (filterConfig.author) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].author.indexOf(filterConfig.author) === -1) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-
-      if (filterConfig.dateFrom) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].createdAt < filterConfig.dateFrom) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-
-      if (filterConfig.dateTo) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].createdAt > filterConfig.dateTo) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-
-      if (filterConfig.text) {
-        for (let i = 0; i < messagesBuffer.length; i++) {
-          if (messagesBuffer[i].text.indexOf(filterConfig.text) === -1) {
-            messagesBuffer.splice(i, 1);
-            i--;
-          }
-        }
-      }
-    }
-
-    function compareDates(message1, message2) {
-      return message1.createdAt - message2.createdAt;
-    }
-    messagesBuffer.sort(compareDates);
-
-    if (this.user) {
-      for (let i = 0; i < messagesBuffer.length; i++) {
-        if (messagesBuffer[i].isPersonal && messagesBuffer[i].to !== this.user && messagesBuffer[i].author !== this.user) {
-          messagesBuffer.splice(i, 1);
-          i--;
-        }
-      }
-    }
-
-    let startIndex = messagesBuffer.length - top - skip;
-    if (startIndex < 0) {
-      startIndex = 0;
-    }
-
-    let endIndex = messagesBuffer.length - skip;
-    if (endIndex < 0) {
-      endIndex = 0;
-    }
-
-    messagesBuffer = messagesBuffer.slice(startIndex, endIndex);
-
-    return messagesBuffer;
-  }
-
-  get(id) {
-    function checkId(element) {
-      if (element.id === id) {
-        return true;
-      }
-      return false;
-    }
-    return this._messages.find(checkId);
-  }
-
-  static validate(message) {
-    if (!(typeof (message.id) === 'string')
-      || !(typeof (message.author) === 'string')
-      || !(typeof (message.text) === 'string')
-      || !(message.createdAt instanceof Date)
-      || (message.isPersonal && !(typeof (message.isPersonal) === 'boolean'))
-      || (message.to && !(typeof (message.to) === 'string'))) {
-      return false;
-    }
-    return true;
-  }
-
-  add(message) {
-    if (message.author === undefined) {
-      message.author = this.user;
-    }
-    if (message.id === undefined) {
-      message.id = String(Number(this._messages[this._messages.length - 1].id) + 1);
-    }
-    if (message.createdAt === undefined) {
-      message.createdAt = new Date();
-    }
-    if (MessageList.validate(message)) {
-      const newMessage = new Message(
-        message.id,
-        message.text,
-        message.createdAt,
-        message.author,
-        message.isPersonal,
-        message.to,
-      );
-      this._messages.push(newMessage);
-      this._save();
-      return true;
-    }
-    return false;
-  }
-
-  addAll(messages) {
-    const unvalidatedMessages = [];
-    messages.forEach((message) => {
-      if (!this.add(message)) {
-        unvalidatedMessages.push(message);
-      }
-    });
-    this._save();
-    return unvalidatedMessages;
-  }
-
-  remove(id) {
-    const message = this.get(id);
-    if (message) {
-      const index = this._messages.indexOf(message);
-      if (this.user) {
-        if (message.author === this.user) {
-          this._messages.splice(index, 1);
-          this._save();
-          return true;
-        }
-        return false;
-      }
-      this._messages.splice(index, 1);
-      this._save();
-      return true;
-    }
-    return false;
-  }
-
-  edit(id, editedMessage) {
-    function copy(sourceMessage, newMessage) {
-      sourceMessage.id = newMessage.id;
-      sourceMessage.author = newMessage.author;
-      sourceMessage.text = newMessage.text;
-      if (newMessage.isPersonal) {
-        sourceMessage.isPersonal = newMessage.isPersonal;
-      }
-      if (newMessage.to) {
-        sourceMessage.to = newMessage.to;
-      }
-      if (newMessage.createdAt) {
-        sourceMessage.createdAt = newMessage.createdAt;
-      }
-    }
-    if (editedMessage.author === undefined) {
-      editedMessage.author = this.user;
-    }
-    if (editedMessage.id === undefined) {
-      editedMessage.id = String(Number(this._messages[this._messages.length - 1].id) + 1);
-    }
-    if (MessageList.validate(editedMessage)) {
-      const editableMessage = this.get(id);
-      if (editableMessage) {
-        if (this.user) {
-          if (editableMessage.author === this.user) {
-            copy(editableMessage, editedMessage);
-            this._save();
-            return true;
-          }
-          return false;
-        }
-        copy(editableMessage, editedMessage);
-        this._save();
-        return true;
-      }
-      return false;
-    }
-    return false;
-  }
-
-  clear() {
-    this._messages = [];
-    this._save();
-  }
-}
-
 class MessagesView {
   constructor(containerId) {
     this.containerId = containerId;
@@ -262,16 +264,16 @@ class MessagesView {
       const infoString = `${message.isPersonal ? `Personal message to ${message.to}` : 'Common message'} from ${message.author},<br/> at ${formatDate}`;
       if (message.author === currentUser.name) {
         messagesHTML
-          += `<div class="commonSentMessage" id="${message.id}">
-          <input type="text" disabled value="${message.text}">
+          += `<div class="sentMessage" id="${message.id}">
+          <textarea name="text" cols="30" rows="2" disabled>${message.text}</textarea>
           <img class="imgMes1 delete" src="https://icon-library.com/images/deleted-icon/deleted-icon-18.jpg"/>
           <img class="imgMes1 edit" src="https://upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/1024px-OOjs_UI_icon_edit-ltr-progressive.svg.png"/>
         </div>  
         <div class="info info2">${infoString}</div> `;
       } else {
         messagesHTML
-          += `<div class="commonComeMessage" id="${message.id}">
-          <input type="text" disabled value="${message.text}">
+          += `<div class="comeMessage" id="${message.id}">
+          <textarea name="text" cols="30" rows="2" disabled>${message.text}</textarea>
           </div>  
         <div class="info info1">${infoString}</div>`;
       }
@@ -284,100 +286,6 @@ class User {
   constructor(name, avatar) {
     this.name = name;
     this.avatar = avatar;
-  }
-}
-
-class UserList {
-  constructor() {
-    this._restore();
-  }
-
-  _save() {
-    localStorage.setItem('users', JSON.stringify(this._users));
-    localStorage.setItem('activeUsers', JSON.stringify(this._activeUsers));
-    localStorage.setItem('currentUser', JSON.stringify(this._currentUser));
-  }
-
-  _restore() {
-    this._users = JSON.parse(localStorage.getItem('users'));
-    this._activeUsers = JSON.parse(localStorage.getItem('activeUsers'));
-    this._currentUser = JSON.parse(localStorage.getItem('currentUser'));
-  }
-
-  setCurrentUser(name) {
-    const activeUserIndex = this.getActiveUserIndex(name);
-    if (activeUserIndex !== -1) {
-      this._currentUser = this._activeUsers[activeUserIndex];
-    }
-    this._save();
-  }
-
-  getCurrentUser() {
-    return this._currentUser;
-  }
-
-  addUser(name, avatar) {
-    if (this.getUserIndex(name) === -1) {
-      this._users.push(new User(name, avatar));
-    }
-    this._save();
-  }
-
-  setActiveUser(name) {
-    const userIndex = this.getUserIndex(name);
-    const activeUserIndex = this.getActiveUserIndex(name);
-    if (userIndex !== -1 && activeUserIndex === -1) {
-      this._activeUsers.push(this._users[userIndex]);
-    }
-    this._save();
-  }
-
-  setPassiveUser(name) {
-    const activeUserIndex = this.getActiveUserIndex(name);
-    if (activeUserIndex !== -1) {
-      this._activeUsers.splice(activeUserIndex, 1);
-    }
-    this._save();
-  }
-
-  deleteUser(name) {
-    const index = this.getUserIndex(name);
-    if (index !== -1) {
-      this._users.splice(index, 1);
-    }
-    this._save();
-  }
-
-  getUserIndex(name) {
-    if (!this._users) {
-      return -1;
-    }
-    for (let i = 0; i < this._users.length; i++) {
-      if (name === this._users[i].name) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  getActiveUserIndex(name) {
-    if (!this._activeUsers) {
-      return -1;
-    }
-    for (let i = 0; i < this._activeUsers.length; i++) {
-      if (name === this._activeUsers[i].name) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  getAllUsers() {
-    return this._users;
-  }
-
-  getAllActiveUsers() {
-    return this._activeUsers;
   }
 }
 
@@ -460,135 +368,113 @@ class FiltersView {
   }
 }
 
-function checkLocalStorage() {
-  const readyUsers = [
-    new User('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png'),
-    new User('User2', 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png'),
-    new User('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png'),
-    new User('User4', 'https://cdn.iconscout.com/icon/free/png-256/avatar-372-456324.png'),
-  ];
-  const readyActiveUsers = [
-    new User('User1', 'https://image.flaticon.com/icons/png/512/194/194938.png'),
-    new User('User2', 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png'),
-    new User('User3', 'https://cdn.iconscout.com/icon/free/png-256/avatar-380-456332.png'),
-  ];
-  const readyCurrentUser = readyActiveUsers[0];
-  const readyMessages = [
-    new Message(
-      '0',
-      'Hello User1!',
-      new Date(),
-      'User2',
-      false,
-    ),
-
-    new Message(
-      '1',
-      'Hello!',
-      new Date(),
-      'User1',
-      false,
-    ),
-
-    new Message(
-      '2',
-      'Hello User2!',
-      new Date(),
-      'User1',
-      true,
-      'User2',
-    ),
-
-    new Message(
-      '3',
-      '...',
-      new Date(),
-      'User3',
-      false,
-    ),
-  ];
-
-  if (localStorage.getItem('users') === null) {
-    localStorage.setItem('users', JSON.stringify(readyUsers));
-  }
-
-  if (localStorage.getItem('activeUsers') === null) {
-    localStorage.setItem('activeUsers', JSON.stringify(readyActiveUsers));
-  }
-
-  if (localStorage.getItem('currentUser') === null) {
-    localStorage.setItem('currentUser', JSON.stringify(readyCurrentUser));
-  }
-
-  if (localStorage.getItem('messages') === null) {
-    localStorage.setItem('messages', JSON.stringify(readyMessages));
-  }
-}
-
 // CONTROLLER
 
 class ChatController {
   constructor() {
+    this.chatApi = new ChatApiService('https://jslabdb.datamola.com');
+
     this.currentTop = 10;
     this.currentSkip = 0;
     this.currentFilter = null;
     this.currentSelectedUser = 'All';
 
-    this.messageList = new MessageList();
     this.messagesView = new MessagesView('messages');
-    this.userList = new UserList();
-    this.activeUsersView = new ActiveUsersView('usersList');
-    this.helpBoxView = new HelpBoxView('mymessage');
+    this.activeUsersView = new ActiveUsersView('userList');
+    this.helpBoxView = new HelpBoxView('helpBox');
     this.filtersView = new FiltersView('filters');
     this.headerView = new HeaderView('avatar', 'currentUser');
 
-    checkLocalStorage();
-
     this.showHelpBox(this.currentSelectedUser);
+    this.loadCurrentUser();
+
     this.showActiveUsers();
     this.showMessages(this.currentSkip, this.currentTop, this.currentFilter);
-    this.loadCurrentUser();
+    this.startShortPolling(2000);
   }
 
-  addMessage(text, isPersonal, to) {
-    if (this.messageList.add(new Message(undefined, text, undefined, undefined, isPersonal, to))) {
-      this.showMessages();
+  startShortPolling(interval) {
+    this.dataUpdateInterval = setInterval(() => {
+      this.showActiveUsers();
+      this.showMessages(this.currentSkip, this.currentTop, this.currentFilter);
+    }, interval);
+  }
+
+  endShortPolling() {
+    clearInterval(this.dataUpdateInterval);
+  }
+
+  async addMessage(text, isPersonal, to) {
+    const result = await this.chatApi.addMessage(text, isPersonal, to);
+    if (result != null) {
+      console.log(result);
+      await this.showMessages();
     }
   }
 
-  editMessage(id, text, isPersonal, to) {
-    if (this.messageList.edit(id, new Message(undefined, text, undefined, undefined, isPersonal, to))) {
-      this.showMessages();
+  async editMessage(id, text) {
+    if (this.chatApi.editMessage(id, text)) {
+      await this.showMessages();
     }
   }
 
-  removeMessage(id) {
-    if (this.messageList.remove(id)) {
-      this.showMessages();
+  async removeMessage(id) {
+    if (this.chatApi.deleteMesssage(id)) {
+      await this.showMessages();
     }
   }
 
-  showMessages(skip, top, filter) {
-    if (filter) {
-      // eslint-disable-next-line no-use-before-define
-      this.currentFilter = filter;
-    }
-    this.messagesView.display(this.messageList.getPage(skip, top, filter), this.userList.getCurrentUser());
+  _getValidMessages(messages) {
+    messages.forEach((message) => {
+      message.createdAt = new Date(message.createdAt);
+    });
   }
 
-  showActiveUsers() {
-    this.activeUsersView.display(this.userList.getAllActiveUsers(), this.userList.getCurrentUser());
+  _sortMessages(messages, skip, top, filterConfig) {
+    const messagesBuffer = messages.slice();
+
+    function compareDates(message1, message2) {
+      return message1.createdAt - message2.createdAt;
+    }
+    messagesBuffer.sort(compareDates);
+
+    return messagesBuffer;
+  }
+
+  async showMessages(skip, top, filter) {
+    const messages = await this.chatApi.getMessages(this.currentSkip, this.currentTop, this.currentFilter);
+    if (messages !== undefined && messages !== null && messages !== 'query params invalid') {
+      this._getValidMessages(messages);
+      const sortedMessages = this._sortMessages(messages, skip, top, filter);
+      this.messagesView.display(sortedMessages, this.chatApi.getCurrentUser());
+      addDeleteEventToAllMessages();
+      addEditEventToAllMessages();
+    } else {
+      this.messagesView.display([], this.chatApi.getCurrentUser());
+    }
+  }
+
+  _sortActiveUsers(users) {
+    const activeUsers = [];
+    users.forEach((user) => {
+      if (user.isActive) {
+        activeUsers.push(new User(user.name, 'https://img.pngio.com/user-profile-avatar-login-account-svg-png-icon-free-download-login-icon-png-980_982.png'));
+      }
+    });
+    return activeUsers;
+  }
+
+  async showActiveUsers() {
+    const users = await this.chatApi.getUsers();
+    if (users !== null) {
+      this.activeUsersView.display(this._sortActiveUsers(users), this.chatApi.getCurrentUser());
+      addSelectUserEvent();
+    }
   }
 
   setCurrentUser(name, avatar) {
-    this.userList.addUser(name, avatar);
-    this.userList.setActiveUser(name);
-    this.userList.setCurrentUser(name);
-    this.messageList.user = name;
-
-    this.headerView.display(this.userList.getCurrentUser().avatar, this.userList.getCurrentUser().name);
-    this.showMessages();
-    this.showActiveUsers();
+    this.chatApi.setCurrentUser(new User(name, avatar));
+    this.headerView.display(this.chatApi.getCurrentUser().avatar, this.chatApi.getCurrentUser().name);
   }
 
   showHelpBox(to) {
@@ -600,13 +486,18 @@ class ChatController {
   }
 
   loadCurrentUser() {
-    const currentUserStorageText = localStorage.getItem('currentUser');
+    const currentUserStorageText = sessionStorage.getItem('currentUser');
     if (currentUserStorageText) {
       const currentUser = JSON.parse(currentUserStorageText);
       this.setCurrentUser(currentUser.name, currentUser.avatar);
     } else {
-      this.setCurrentUser(activeUsers[0].name, activeUsers[0].avatar);
+      document.location.href = '../error.html?errorCode=405&errorDescription=Unathorised';
     }
+  }
+
+  async logOut() {
+    await this.chatApi.logOut();
+    document.location.href = '../login.html';
   }
 }
 
@@ -621,18 +512,15 @@ function addSelectUserEvent() {
       if (oldSelectedUser === chatController.currentSelectedUser) {
         chatController.currentSelectedUser = 'All';
       }
-      const helpContainer = document.getElementById('mymessage');
       chatController.showHelpBox(chatController.currentSelectedUser);
     });
   });
 }
 
 function addLoadOtherMessagesButtonEvent() {
-  const loadOtherMessagesButton = document.getElementById('loadmore');
+  const loadOtherMessagesButton = document.getElementById('loadMoreButton');
   loadOtherMessagesButton.addEventListener('click', (event) => {
-    if (chatController.currentTop < chatController.messageList.getMessagesLength()) {
-      chatController.currentTop += 10;
-    }
+    chatController.currentTop += 10;
     chatController.showMessages(chatController.currentSkip, chatController.currentTop, chatController.currentFilter);
   });
 }
@@ -641,11 +529,12 @@ function addDeleteEventToAllMessages() {
   const deleteMessageButtons = document.getElementsByClassName('delete');
   Array.prototype.slice.call(deleteMessageButtons).forEach((button) => {
     button.addEventListener('click', (event) => {
+      chatController.endShortPolling();
+
       const messageContainer = button.parentNode;
       chatController.removeMessage(messageContainer.id);
-      // eslint-disable-next-line no-use-before-define
-      addEditEventToAllMessages();
-      addDeleteEventToAllMessages();
+
+      chatController.startShortPolling(2000);
     });
   });
 }
@@ -654,8 +543,11 @@ function addEditEventToAllMessages() {
   const editMessageButtons = document.getElementsByClassName('edit');
   Array.prototype.slice.call(editMessageButtons).forEach((button) => {
     button.addEventListener('click', (event) => {
+      chatController.endShortPolling();
+
       const messageContainer = button.parentNode;
       const messageInput = messageContainer.children[0];
+      messageInput.style = 'background-color: var(--first-bg-color);';
       const messageText = messageInput.value;
 
       const editButton = messageContainer.children[1];
@@ -663,23 +555,28 @@ function addEditEventToAllMessages() {
 
       messageContainer.removeChild(editButton);
       messageContainer.removeChild(deleteButton);
+      messageContainer.classList.add('editMessage');
       messageInput.removeAttribute('disabled');
 
       messageInput.addEventListener('keydown', (event) => {
         switch (event.keyCode) {
           case 13:
-            chatController.editMessage(messageContainer.id, messageInput.value);
-            addDeleteEventToAllMessages();
-            addEditEventToAllMessages();
+            if (messageInput.value.length > 0) {
+              chatController.editMessage(messageContainer.id, messageInput.value);
+            }
             messageContainer.appendChild(deleteButton);
             messageContainer.appendChild(editButton);
+            messageContainer.classList.remove('editMessage');
             messageInput.setAttribute('disabled', true);
+            chatController.startShortPolling(2000);
             break;
           case 27:
             messageInput.value = messageText;
             messageContainer.appendChild(deleteButton);
             messageContainer.appendChild(editButton);
+            messageContainer.classList.remove('editMessage');
             messageInput.setAttribute('disabled', true);
+            chatController.startShortPolling(2000);
             break;
           default:
             break;
@@ -694,6 +591,8 @@ function addFilterEvent() {
   const filterCancelButton = document.getElementById('filterCancelButton');
 
   filterSendButton.addEventListener('click', (event) => {
+    chatController.endShortPolling();
+
     const filtersBox = document.getElementById('filters');
     const authorFilterBox = filtersBox.children[0];
     const dateFromFilterBox = filtersBox.children[1];
@@ -723,10 +622,16 @@ function addFilterEvent() {
     const textFilter = textFilterBox.value;
 
     const filter = new FilterConfig(authorFilter, dateFromFilter, dateToFilter, textFilter);
-    chatController.showMessages(this.currentSkip, this.currentTop, filter);
+    chatController.currentFilter = filter;
+
+    chatController.showMessages(this.currentSkip, this.currentTop, this.currentFilter);
+
+    chatController.startShortPolling(2000);
   });
 
   filterCancelButton.addEventListener('click', (event) => {
+    chatController.endShortPolling();
+
     const filtersBox = document.getElementById('filters');
     filtersBox.children[0].value = null;
     filtersBox.children[1].value = null;
@@ -735,12 +640,16 @@ function addFilterEvent() {
 
     chatController.currentFilter = null;
     chatController.showMessages(chatController.currentSkip, chatController.currentTop, chatController.currentFilter);
+
+    chatController.startShortPolling(2000);
   });
 }
 
 function addSendButtonEvent() {
   const messageInput = document.getElementById('sendButton');
   messageInput.addEventListener('click', (event) => {
+    chatController.endShortPolling();
+
     event.preventDefault();
     const textInput = document.getElementById('myInput');
     const messageText = textInput.value;
@@ -748,19 +657,28 @@ function addSendButtonEvent() {
       return;
     }
     if (chatController.currentSelectedUser !== 'All') {
-      chatController.addMessage(messageText, true, currentSelectedUser);
+      chatController.addMessage(messageText, true, chatController.currentSelectedUser);
     } else {
       chatController.addMessage(messageText, false);
     }
 
-    addEditEventToAllMessages();
-    addDeleteEventToAllMessages();
     textInput.value = '';
     const messagesContainer = document.getElementById('messages');
     messagesContainer.scrollTo(0, document.body.scrollHeight);
+
+    chatController.startShortPolling(2000);
   });
 }
 
+function addLogOutEvent() {
+  const logOutButton = document.getElementById('logOut');
+  logOutButton.addEventListener('click', () => {
+    chatController.endShortPolling();
+    chatController.logOut();
+  });
+}
+
+addLogOutEvent();
 addFilterEvent();
 addSelectUserEvent();
 addLoadOtherMessagesButtonEvent();
