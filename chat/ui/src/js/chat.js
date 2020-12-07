@@ -497,7 +497,7 @@ class ChatController {
 
   async logOut() {
     await this.chatApi.logOut();
-    document.location.href = '../login.html';
+    document.location.href = './login.html';
   }
 }
 
