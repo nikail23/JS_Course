@@ -48,7 +48,7 @@ loginButton.addEventListener('click', async () => {
   if (result.token) {
     sessionStorage.setItem('token', result.token);
     sessionStorage.setItem('currentUser', JSON.stringify(new User(login, 'https://image.flaticon.com/icons/png/512/194/194938.png')));
-    document.location.href = '../main.html';
+    document.location.href = './main.html';
   } else {
     loginInput.value = '';
     loginInput.placeholder = result.error;

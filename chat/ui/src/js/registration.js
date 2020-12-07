@@ -89,6 +89,6 @@ registerButton.addEventListener('click', async () => {
     passwordInput.value = '';
     repeatPasswordInput.value = '';
   } else {
-    document.location.href = '../login.html';
+    document.location.href = './login.html';
   }
 });
