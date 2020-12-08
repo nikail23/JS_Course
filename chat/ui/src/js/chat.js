@@ -54,28 +54,28 @@ class ChatApiService {
       if (filter.dateTo !== undefined) {
         if (isFirst) {
           const year = filter.dateTo.getFullYear();
-          const month = ('0'+(filter.dateTo.getMonth() + 1)).slice(-2);
-          const day = ('0'+filter.dateTo.getDate()).slice(-2);
+          const month = (`0${filter.dateTo.getMonth() + 1}`).slice(-2);
+          const day = (`0${filter.dateTo.getDate()}`).slice(-2);
           request += `&dateTo=${year}${month}${day}`;
         } else {
           isFirst = true;
           const year = filter.dateTo.getFullYear();
-          const month = ('0'+(filter.dateTo.getMonth() + 1)).slice(-2);
-          const day = ('0'+filter.dateTo.getDate()).slice(-2);
+          const month = (`0${filter.dateTo.getMonth() + 1}`).slice(-2);
+          const day = (`0${filter.dateTo.getDate()}`).slice(-2);
           request += `dateTo=${year}${month}${day}`;
         }
       }
       if (filter.dateFrom !== undefined) {
         if (isFirst) {
           const year = filter.dateFrom.getFullYear();
-          const month = ('0'+(filter.dateFrom.getMonth() + 1)).slice(-2);
-          const day = ('0'+filter.dateFrom.getDate()).slice(-2);
+          const month = (`0${filter.dateFrom.getMonth() + 1}`).slice(-2);
+          const day = (`0${filter.dateFrom.getDate()}`).slice(-2);
           request += `dateFrom=${year}${month}${day}`;
         } else {
           isFirst = true;
           const year = filter.dateFrom.getFullYear();
-          const month = ('0'+(filter.dateFrom.getMonth() + 1)).slice(-2);
-          const day = ('0'+filter.dateFrom.getDate()).slice(-2);
+          const month = (`0${filter.dateFrom.getMonth() + 1}`).slice(-2);
+          const day = (`0${filter.dateFrom.getDate()}`).slice(-2);
           request += `&dateFrom=${year}${month}${day}`;
         }
       }
@@ -390,18 +390,22 @@ class ChatController {
 
     this.showActiveUsers();
     this.showMessages(this.currentSkip, this.currentTop, this.currentFilter);
-    this.startShortPolling(2000);
+    this.startShortPolling();
   }
 
-  startShortPolling(interval) {
+  startShortPolling() {
     this.dataUpdateInterval = setInterval(() => {
-      this.showActiveUsers();
       this.showMessages(this.currentSkip, this.currentTop, this.currentFilter);
-    }, interval);
+    }, 2000);
+
+    this.usersUpdateInterval = setInterval(() => {
+      this.showActiveUsers();
+    }, 60000);
   }
 
   endShortPolling() {
     clearInterval(this.dataUpdateInterval);
+    clearInterval(this.usersUpdateInterval);
   }
 
   async addMessage(text, isPersonal, to) {
@@ -534,7 +538,7 @@ function addDeleteEventToAllMessages() {
       const messageContainer = button.parentNode;
       chatController.removeMessage(messageContainer.id);
 
-      chatController.startShortPolling(2000);
+      chatController.startShortPolling();
     });
   });
 }
@@ -568,7 +572,7 @@ function addEditEventToAllMessages() {
             messageContainer.appendChild(editButton);
             messageContainer.classList.remove('editMessage');
             messageInput.setAttribute('disabled', true);
-            chatController.startShortPolling(2000);
+            chatController.startShortPolling();
             break;
           case 27:
             messageInput.value = messageText;
@@ -576,7 +580,7 @@ function addEditEventToAllMessages() {
             messageContainer.appendChild(editButton);
             messageContainer.classList.remove('editMessage');
             messageInput.setAttribute('disabled', true);
-            chatController.startShortPolling(2000);
+            chatController.startShortPolling();
             break;
           default:
             break;
@@ -626,7 +630,7 @@ function addFilterEvent() {
 
     chatController.showMessages(this.currentSkip, this.currentTop, this.currentFilter);
 
-    chatController.startShortPolling(2000);
+    chatController.startShortPolling();
   });
 
   filterCancelButton.addEventListener('click', (event) => {
@@ -641,7 +645,7 @@ function addFilterEvent() {
     chatController.currentFilter = null;
     chatController.showMessages(chatController.currentSkip, chatController.currentTop, chatController.currentFilter);
 
-    chatController.startShortPolling(2000);
+    chatController.startShortPolling();
   });
 }
 
@@ -666,7 +670,7 @@ function addSendButtonEvent() {
     const messagesContainer = document.getElementById('messages');
     messagesContainer.scrollTo(0, document.body.scrollHeight);
 
-    chatController.startShortPolling(2000);
+    chatController.startShortPolling();
   });
 }
 
